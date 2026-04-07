@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -567,7 +568,7 @@ function SettingsContent({
 }
 
 // ---------- Main component ----------
-export default function Home() {
+function Home() {
   const isMobile = useIsMobile();
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -2058,3 +2059,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(Home), { ssr: false });
