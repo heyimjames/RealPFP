@@ -3,14 +3,10 @@ import { NextRequest } from "next/server";
 const FAL_API_URL = "https://fal.run/fal-ai/nano-banana-2";
 
 export async function POST(request: NextRequest) {
-  const falKey = process.env.FAL_KEY;
-  if (!falKey) {
-    return Response.json({ error: "FAL_KEY not configured" }, { status: 500 });
-  }
-
   const body = await request.json();
-  const { prompts, settings } = body as {
+  const { prompts, settings, falApiKey } = body as {
     prompts: string[];
+    falApiKey?: string;
     settings: {
       aspect_ratio?: string;
       resolution?: string;
@@ -21,6 +17,14 @@ export async function POST(request: NextRequest) {
       thinking_level?: string | null;
     };
   };
+
+  const falKey = falApiKey || process.env.FAL_KEY;
+  if (!falKey) {
+    return Response.json(
+      { error: "No FAL API key provided. Add your key in Settings." },
+      { status: 400 }
+    );
+  }
 
   if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
     return Response.json({ error: "No prompts provided" }, { status: 400 });

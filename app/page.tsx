@@ -371,12 +371,38 @@ function useIsMobile(breakpoint = 768) {
 function SettingsContent({
   settings,
   setSettings,
+  falApiKey,
+  setFalApiKey,
 }: {
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+  falApiKey: string;
+  setFalApiKey: (key: string) => void;
 }) {
   return (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>FAL API Key</Label>
+        <Input
+          type="password"
+          placeholder="Your fal.ai API key"
+          value={falApiKey}
+          onChange={(e) => setFalApiKey(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Get a key at{" "}
+          <a
+            href="https://fal.ai/dashboard/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            fal.ai/dashboard/keys
+          </a>
+        </p>
+      </div>
+
+      <Separator />
       <div className="space-y-2">
         <Label>Aspect Ratio</Label>
         <Select
@@ -548,7 +574,17 @@ export default function Home() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [singlePrompt, setSinglePrompt] = useState("");
   const [bulkPrompts, setBulkPrompts] = useState("");
+  const [falApiKey, setFalApiKeyState] = useState("");
   const abortRef = useRef(false);
+
+  // Persist FAL API key to localStorage
+  const setFalApiKey = (key: string) => {
+    setFalApiKeyState(key);
+    try {
+      if (key) localStorage.setItem("ppg-fal-key", key);
+      else localStorage.removeItem("ppg-fal-key");
+    } catch {}
+  };
 
   // AI Prompts tab state
   const [aiParams, setAiParams] = useState<Record<string, ParamConfig>>({
@@ -618,7 +654,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxImage, isMobile]);
 
-  // Restore images from localStorage on mount
+  // Restore state from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem("ppg-images");
@@ -631,6 +667,10 @@ export default function Home() {
         );
         setImages(cleaned);
       }
+    } catch {}
+    try {
+      const storedKey = localStorage.getItem("ppg-fal-key");
+      if (storedKey) setFalApiKeyState(storedKey);
     } catch {}
   }, []);
 
@@ -694,6 +734,7 @@ export default function Home() {
             body: JSON.stringify({
               prompts: [prompts[i]],
               settings,
+              ...(falApiKey && { falApiKey }),
             }),
           });
 
@@ -746,7 +787,7 @@ export default function Home() {
         );
       }
     },
-    [settings]
+    [settings, falApiKey]
   );
 
   const handleSingleGenerate = () => {
@@ -920,7 +961,7 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompts: [newPrompt], settings }),
+        body: JSON.stringify({ prompts: [newPrompt], settings, ...(falApiKey && { falApiKey }) }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
@@ -1589,7 +1630,7 @@ export default function Home() {
               <CardTitle>Settings</CardTitle>
             </CardHeader>
             <CardContent>
-              <SettingsContent settings={settings} setSettings={setSettings} />
+              <SettingsContent settings={settings} setSettings={setSettings} falApiKey={falApiKey} setFalApiKey={setFalApiKey} />
             </CardContent>
           </Card>
         </div>
@@ -1607,7 +1648,7 @@ export default function Home() {
             </DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-2">
-            <SettingsContent settings={settings} setSettings={setSettings} />
+            <SettingsContent settings={settings} setSettings={setSettings} falApiKey={falApiKey} setFalApiKey={setFalApiKey} />
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
