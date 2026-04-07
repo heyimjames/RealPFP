@@ -658,6 +658,9 @@ function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxImage, isMobile]);
 
+  // Track whether localStorage has been loaded
+  const hydratedRef = useRef(false);
+
   // Restore state from localStorage on mount
   useEffect(() => {
     try {
@@ -680,17 +683,20 @@ function Home() {
       const storedSaved = localStorage.getItem("ppg-saved");
       if (storedSaved) setSavedImages(JSON.parse(storedSaved));
     } catch {}
+    hydratedRef.current = true;
   }, []);
 
-  // Persist images to localStorage on change
+  // Persist images to localStorage on change (skip initial empty render)
   useEffect(() => {
+    if (!hydratedRef.current) return;
     try {
       localStorage.setItem("ppg-images", JSON.stringify(images));
     } catch {}
   }, [images]);
 
-  // Persist saved images to localStorage on change
+  // Persist saved images to localStorage on change (skip initial empty render)
   useEffect(() => {
+    if (!hydratedRef.current) return;
     try {
       localStorage.setItem("ppg-saved", JSON.stringify(savedImages));
     } catch {}
