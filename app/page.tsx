@@ -52,11 +52,12 @@ type Settings = {
 type ParamConfig = { enabled: boolean; selected: string[] };
 
 const RANDOM_TRAITS = {
-  ages: [20, 22, 24, 25, 27, 28, 30, 32, 34, 35, 37, 39, 40, 42, 45, 48, 50, 55],
+  ages: [20, 22, 24, 25, 27, 28, 30, 32, 34, 35, 37, 39, 40, 42, 45, 48, 50, 55, 60, 63],
   ethnicities: [
     "East Asian", "South Asian", "Black", "White", "Hispanic", "Latino", "Latina",
     "Middle Eastern", "Southeast Asian", "Korean", "Japanese", "Chinese",
-    "Ethiopian", "Filipino", "Indigenous American", "Biracial",
+    "Ethiopian", "Filipino", "Indigenous American", "Biracial", "Pacific Islander",
+    "North African", "Central Asian", "Caribbean",
   ],
   genders: ["woman", "man"],
   hairStyles: [
@@ -64,47 +65,96 @@ const RANDOM_TRAITS = {
     "wavy hair", "straight hair", "a pixie cut", "a bob", "braids",
     "a fade haircut", "natural TWA hair", "a high top fade", "a bald head",
     "hair in a loose bun", "hair in a low ponytail", "hair pulled back",
+    "a messy side part", "hair tucked behind one ear with loose strands falling out",
+    "air-dried wavy hair", "a slightly grown-out buzz cut",
+    "a half-up half-down style coming undone",
   ],
   hairColors: [
     "black", "dark brown", "light brown", "auburn", "blonde", "dirty blonde",
     "red", "ginger", "silver-streaked", "grey", "salt-and-pepper",
+    "dark roots growing into bleached ends", "sun-lightened brown",
   ],
   expressions: [
     "warm smile showing teeth", "slight closed-mouth smile",
-    "confident smirk", "relaxed half-smile", "big genuine laugh",
+    "confident smirk", "relaxed half-smile", "big genuine laugh with eyes squeezed shut",
     "gentle warm smile", "easygoing grin", "soft shy smile",
-    "thoughtful expression", "neutral relaxed expression",
+    "thoughtful expression with slightly furrowed brow", "neutral resting face",
+    "squinting slightly against the light",
+    "caught mid-sentence with mouth slightly open",
+    "subtle smirk like they just heard something funny",
+    "looking slightly past the camera, distracted",
+    "eyes crinkled from laughing a moment ago",
+    "resting face with a hint of tiredness around the eyes",
+    "one eyebrow slightly raised, skeptical look",
+    "mid-yawn they're trying to suppress",
+    "concentrating expression, lips pressed together",
   ],
   clothing: [
     "a navy crewneck sweater", "a charcoal suit jacket and white open-collar shirt",
-    "a vintage denim jacket", "a light blue Oxford shirt", "a white linen blouse",
-    "a dark green flannel shirt", "a mustard yellow turtleneck",
-    "a fitted black turtleneck", "a heather grey hoodie",
-    "a white button-down shirt", "a cream cable-knit sweater",
-    "a dark olive henley shirt", "a chambray button-down shirt",
+    "a vintage denim jacket with a fraying collar", "a light blue Oxford shirt",
+    "a white linen blouse", "a dark green flannel shirt with the top button undone",
+    "a mustard yellow turtleneck", "a fitted black turtleneck",
+    "a heather grey hoodie with the strings uneven",
+    "a white button-down shirt with sleeves rolled to the elbows",
+    "a cream cable-knit sweater", "a dark olive henley shirt",
+    "a slightly wrinkled linen shirt", "a faded band t-shirt under an open flannel",
+    "a well-worn leather jacket", "a rain jacket half-zipped",
+    "a simple grey v-neck t-shirt", "a puffer vest over a long-sleeve thermal",
+    "scrubs with a lanyard visible", "a plaid shirt with one side untucked",
+    "a zip-up fleece", "a denim jacket layered over a hoodie",
   ],
   lighting: [
-    "soft overcast light", "indoor studio lighting with soft grey backdrop",
-    "golden hour sunlight from the side", "natural window light from the left",
-    "bright midday sun", "soft diffused indoor lighting",
-    "dappled light filtering through trees", "warm lamp light mixed with daylight",
-    "bright golden hour light", "soft late afternoon light",
+    "soft overcast light, no hard shadows",
+    "golden hour sunlight from the side casting a long shadow",
+    "natural window light from the left, one side of face darker",
+    "bright midday sun creating hard shadows under the nose and chin",
+    "soft diffused indoor lighting",
+    "dappled light filtering through tree canopy, uneven across the face",
+    "warm lamp light mixed with cool daylight from a window",
+    "late afternoon light going orange",
+    "harsh fluorescent overhead lighting",
+    "backlit with sun creating a rim of light around the hair",
+    "mixed color temperature — warm tungsten indoors and cool daylight from outside",
+    "flat cloudy day light with no visible shadows",
+    "single overhead kitchen light, unflattering angle",
+    "porch light at dusk, yellowish",
+    "bright open shade, even and cool",
   ],
   settings: [
-    "outdoors with blurred greenery behind", "urban street blurred behind",
-    "outdoor park setting", "indoor office environment", "outdoor forest setting",
-    "sitting near a window", "outdoor autumn setting", "coastal setting",
-    "university campus", "clean white background",
+    "outdoors with blurred greenery behind",
+    "busy sidewalk with pedestrians blurred behind",
+    "outdoor park with a bench and trash can slightly visible",
+    "office with a monitor glow and sticky notes on the wall behind",
+    "hiking trail with dirt and rocks visible",
+    "sitting near a window with condensation on the glass",
+    "autumn leaves on the ground, some stuck to their shoe",
+    "rocky beach with overcast sky",
+    "university hallway with lockers",
+    "plain apartment wall with a light switch visible",
+    "busy coffee shop with other people blurred in the background",
+    "parking lot with cars behind them",
+    "kitchen with clutter slightly visible on the counter",
+    "concrete stairwell in an apartment building",
+    "standing in a doorway, half-inside half-outside",
+    "backyard patio with string lights out of focus behind",
+    "subway platform, tiled wall behind",
+    "grocery store parking lot",
+    "hotel lobby with generic art on the wall",
+    "gym entrance, glass door reflecting behind them",
   ],
   filmStyles: [
     "natural film grain, Kodak Portra 400 tones",
-    "warm color grading, shot on medium format camera",
-    "clean sharp focus, minimal grain",
-    "analog warmth, slight grain",
+    "warm color grading, medium format feel",
+    "clean digital, minimal post-processing",
+    "analog warmth, visible grain",
     "Fuji Pro 400H color rendering",
     "earthy muted palette with gentle grain",
-    "rich deep color tones, medium format quality",
+    "rich deep shadows, medium format quality",
     "soft matte color grading",
+    "slightly desaturated, understated color",
+    "straight out of camera JPEG with auto white balance",
+    "slightly overexposed with blown-out highlights on one side",
+    "crunchy high-contrast black levels",
   ],
   bodyAngles: [
     "slight three-quarter turn away from camera",
@@ -129,6 +179,10 @@ const RANDOM_TRAITS = {
     "standing with one hand brushing hair back",
     "looking down at something in their hands",
     "standing relaxed with weight on one leg",
+    "holding a coffee cup in one hand",
+    "adjusting their glasses with one hand",
+    "arms at their sides, slightly awkward",
+    "leaning on a railing",
   ],
   depthsOfField: [
     "everything sharp like an iPhone photo, deep focus",
@@ -159,6 +213,59 @@ const RANDOM_TRAITS = {
     "35mm film camera, Kodak Portra 400",
     "disposable camera with on-camera flash",
     "vintage film camera with slight light leak",
+  ],
+  skinDetails: [
+    "visible forehead creases",
+    "light freckles across the nose and cheeks",
+    "faint acne scarring on one cheek",
+    "visible smile lines around the mouth",
+    "dark circles under the eyes",
+    "a small mole near the jawline",
+    "sun spots on the temples",
+    "slightly chapped lips",
+    "crow's feet visible when smiling",
+    "light stubble shadow on the jaw",
+    "slightly flushed cheeks from the cold",
+    "a faint scar through one eyebrow",
+    "dry skin patch on the forehead",
+    "uneven skin tone, slightly redder around the nose",
+    "visible pores on the nose and cheeks",
+    "a few grey eyebrow hairs",
+    "peeling skin on the nose from sunburn",
+    "sweat visible on the forehead",
+  ],
+  accessories: [
+    "wire-frame glasses sitting slightly crooked",
+    "thick-rimmed glasses",
+    "small gold hoop earrings",
+    "a silver chain necklace tucked under the collar",
+    "a beat-up digital watch",
+    "no accessories",
+    "no accessories",
+    "no accessories",
+    "a baseball cap worn slightly back",
+    "a beanie pulled down to the eyebrows",
+    "reading glasses pushed up on top of the head",
+    "AirPods in, one ear only",
+    "a thin gold wedding band",
+    "stud earrings",
+    "a lanyard with an ID badge clipped to the shirt",
+    "sunglasses pushed up on the forehead",
+  ],
+  photoImperfections: [
+    "slightly off-center framing",
+    "small lens flare in the corner",
+    "faint sensor dust spot in the upper area",
+    "slight vignetting at the edges",
+    "horizon tilted a couple degrees",
+    "background slightly more in focus than intended",
+    "a stray hair across the forehead",
+    "shirt collar popped up on one side",
+    "shadow of the photographer barely visible at the bottom edge",
+    "slight red-eye from the flash",
+    "one hand slightly motion-blurred",
+    "a flyaway hair catching the backlight",
+    "fingerprint smudge on the lens causing slight haze on one side",
   ],
 };
 
@@ -215,8 +322,37 @@ function generateRandomPrompt(): string {
   const dof = randomPick(RANDOM_TRAITS.depthsOfField);
   const candidness = randomPick(RANDOM_TRAITS.candidnessLevels);
   const camera = randomPick(RANDOM_TRAITS.cameraTypes);
+  const skin = randomPick(RANDOM_TRAITS.skinDetails);
+  const accessory = randomPick(RANDOM_TRAITS.accessories);
+  const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
 
-  return `Portrait photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}, ${expression}, ${bodyAngle}, ${pose}, wearing ${clothing}, ${setting}, ${lighting}, head and shoulders framing, natural skin texture with visible pores, ${dof}, ${candidness}, ${filmStyle}, ${camera}`;
+  // Randomly include optional details to break the formula
+  const skinPart = Math.random() > 0.25 ? `, ${skin}` : "";
+  const accessoryPart = accessory !== "no accessories" ? `, ${accessory}` : "";
+  const imperfectionPart = Math.random() > 0.45 ? `. ${imperfection}` : "";
+  const filmPart = Math.random() > 0.15 ? `, ${filmStyle}` : "";
+
+  // Multiple template structures so prompts don't all read identically
+  const templates = [
+    // Scene-first: leads with where, then who
+    () =>
+      `${setting}, ${lighting}. A ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}, ${pose}, wearing ${clothing}${accessoryPart}. ${expression}, ${bodyAngle}. ${dof}, ${candidness}${filmPart}. ${camera}${imperfectionPart}`,
+    // Action-first: leads with what the person is doing
+    () =>
+      `A ${age}-year-old ${ethnicity} ${gender} ${pose}, ${candidness}. ${hairColor} ${hairStyle}, wearing ${clothing}${accessoryPart}. ${expression}${skinPart}. ${setting}, ${lighting}. ${bodyAngle}, ${dof}${filmPart}. ${camera}${imperfectionPart}`,
+    // Camera-first: leads with the technical look
+    () =>
+      `${camera}. ${age}-year-old ${ethnicity} ${gender}, ${expression}, ${bodyAngle}. ${hairColor} ${hairStyle}${skinPart}, wearing ${clothing}${accessoryPart}. ${pose}, ${setting}. ${lighting}, ${dof}. ${candidness}${filmPart}${imperfectionPart}`,
+    // Descriptive: reads more like a caption
+    () =>
+      `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}, ${pose}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${bodyAngle}, ${dof}, ${candidness}, ${camera}${filmPart}${imperfectionPart}`,
+  ];
+
+  return randomPick(templates)()
+    .replace(/\s{2,}/g, " ")
+    .replace(/\.\s*\./g, ".")
+    .replace(/,\s*\./g, ".")
+    .trim();
 }
 
 function useIsMobile(breakpoint = 768) {
