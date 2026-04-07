@@ -600,6 +600,9 @@ export default function Home() {
   const [aiPrompts, setAiPrompts] = useState("");
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
 
+  // Saved library state
+  const [savedImages, setSavedImages] = useState<GeneratedImage[]>([]);
+
   // Selection / regeneration state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -672,6 +675,10 @@ export default function Home() {
       const storedKey = localStorage.getItem("ppg-fal-key");
       if (storedKey) setFalApiKeyState(storedKey);
     } catch {}
+    try {
+      const storedSaved = localStorage.getItem("ppg-saved");
+      if (storedSaved) setSavedImages(JSON.parse(storedSaved));
+    } catch {}
   }, []);
 
   // Persist images to localStorage on change
@@ -680,6 +687,13 @@ export default function Home() {
       localStorage.setItem("ppg-images", JSON.stringify(images));
     } catch {}
   }, [images]);
+
+  // Persist saved images to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem("ppg-saved", JSON.stringify(savedImages));
+    } catch {}
+  }, [savedImages]);
 
   const generateImages = useCallback(
     async (prompts: string[]) => {
@@ -940,6 +954,37 @@ export default function Home() {
 
   const cancelGeneration = () => {
     abortRef.current = true;
+  };
+
+  // Delete a single image from the gallery
+  const deleteImage = (id: string) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  // Delete all selected images
+  const deleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    setImages((prev) => prev.filter((img) => !selectedIds.has(img.id)));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    toast.success(`Deleted ${selectedIds.size} image${selectedIds.size > 1 ? "s" : ""}`);
+  };
+
+  // Toggle save/unsave an image to the library
+  const toggleSaveImage = (image: GeneratedImage) => {
+    setSavedImages((prev) => {
+      const exists = prev.some((img) => img.id === image.id);
+      if (exists) {
+        return prev.filter((img) => img.id !== image.id);
+      }
+      return [{ ...image }, ...prev];
+    });
+  };
+
+  const isImageSaved = (id: string) => savedImages.some((img) => img.id === id);
+
+  const removeSavedImage = (id: string) => {
+    setSavedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
   // Regenerate a single image in-place with a fresh random prompt
@@ -1411,6 +1456,14 @@ export default function Home() {
                         Redo {selectedIds.size > 0 ? selectedIds.size : ""}
                       </Button>
                       <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={deleteSelected}
+                        disabled={selectedIds.size === 0}
+                      >
+                        Delete {selectedIds.size > 0 ? selectedIds.size : ""}
+                      </Button>
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={exitSelectMode}
@@ -1465,7 +1518,7 @@ export default function Home() {
               {/* Select mode hint */}
               {selectMode && (
                 <p className="text-sm text-muted-foreground">
-                  Tap images to select them, then hit Redo to regenerate with new prompts
+                  Tap images to select them, then Redo or Delete
                 </p>
               )}
 
@@ -1538,32 +1591,51 @@ export default function Home() {
                             </div>
                           )}
 
-                          {/* Regenerate button (top-right, visible on hover / always on mobile) */}
+                          {/* Action buttons (top-right, visible on hover / always on mobile) */}
                           {!selectMode && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                regenerateOne(image.id);
-                              }}
-                              className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/70 active:scale-95"
-                              title="Regenerate"
-                            >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
+                            <div className="absolute top-1.5 right-1.5 flex gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleSaveImage(image);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                                title={isImageSaved(image.id) ? "Unsave" : "Save to library"}
                               >
-                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                <path d="M3 3v5h5" />
-                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                                <path d="M16 16h5v5" />
-                              </svg>
-                            </button>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill={isImageSaved(image.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  regenerateOne(image.id);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                                title="Regenerate"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                  <path d="M3 3v5h5" />
+                                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                  <path d="M16 16h5v5" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteImage(image.id);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-red-600/80 active:scale-95"
+                                title="Delete"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 6h18" />
+                                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                </svg>
+                              </button>
+                            </div>
                           )}
 
                           {/* Desktop hover overlay */}
@@ -1585,7 +1657,7 @@ export default function Home() {
                                     downloadImage(image);
                                   }}
                                 >
-                                  Save
+                                  Download
                                 </Button>
                               </div>
                             </div>
@@ -1618,6 +1690,91 @@ export default function Home() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Saved Library */}
+          {savedImages.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold sm:text-xl">
+                    Saved Library
+                  </h2>
+                  <Badge variant="secondary">{savedImages.length}</Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSavedImages([]);
+                    toast.success("Saved library cleared");
+                  }}
+                >
+                  Clear Saved
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
+                {savedImages.map((image) => (
+                  <div
+                    key={`saved-${image.id}`}
+                    className="group relative overflow-hidden rounded-lg border bg-muted"
+                  >
+                    <img
+                      src={image.imageUrl}
+                      alt={image.prompt.slice(0, 80)}
+                      className="aspect-square w-full cursor-pointer object-cover active:opacity-90"
+                      loading="lazy"
+                      onClick={() => openLightbox(image)}
+                    />
+
+                    {/* Action buttons */}
+                    <div className="absolute top-1.5 right-1.5 flex gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadImage(image);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                        title="Download"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSavedImage(image.id);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-red-600/80 active:scale-95"
+                        title="Remove from saved"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Desktop hover overlay */}
+                    <div
+                      className="absolute inset-0 hidden cursor-pointer items-end bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 sm:flex"
+                      onClick={() => openLightbox(image)}
+                    >
+                      <div className="flex w-full items-center justify-between p-2">
+                        <p className="line-clamp-2 text-xs text-white">
+                          {image.prompt.slice(0, 80)}...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1764,26 +1921,49 @@ export default function Home() {
                     {lightboxImage.prompt}
                   </p>
                 </div>
-                <DrawerFooter className="flex-row gap-2">
-                  <Button
-                    className="flex-1"
-                    onClick={() => downloadImage(lightboxImage)}
-                  >
-                    Download
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      const id = lightboxImage.id;
-                      setLightboxImage(null);
-                      regenerateOne(id);
-                    }}
-                  >
-                    Redo
-                  </Button>
+                <DrawerFooter className="flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={() => toggleSaveImage(lightboxImage)}
+                      variant={isImageSaved(lightboxImage.id) ? "secondary" : "default"}
+                    >
+                      {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      onClick={() => downloadImage(lightboxImage)}
+                    >
+                      Download
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        const id = lightboxImage.id;
+                        setLightboxImage(null);
+                        regenerateOne(id);
+                      }}
+                    >
+                      Redo
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => {
+                        const id = lightboxImage.id;
+                        setLightboxImage(null);
+                        deleteImage(id);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                   <DrawerClose asChild>
-                    <Button variant="ghost" className="flex-1">
+                    <Button variant="ghost" className="w-full">
                       Close
                     </Button>
                   </DrawerClose>
@@ -1826,6 +2006,24 @@ export default function Home() {
                   size="lg"
                   variant="secondary"
                   className="flex-1"
+                  onClick={() => toggleSaveImage(lightboxImage)}
+                >
+                  {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => downloadImage(lightboxImage)}
+                >
+                  Download
+                </Button>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="flex-1"
                   onClick={() => {
                     const id = lightboxImage.id;
                     closeLightbox();
@@ -1836,11 +2034,15 @@ export default function Home() {
                 </Button>
                 <Button
                   size="lg"
-                  variant="secondary"
+                  variant="destructive"
                   className="flex-1"
-                  onClick={() => downloadImage(lightboxImage)}
+                  onClick={() => {
+                    const id = lightboxImage.id;
+                    closeLightbox();
+                    deleteImage(id);
+                  }}
                 >
-                  Download
+                  Delete
                 </Button>
               </div>
             </div>
