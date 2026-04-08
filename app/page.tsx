@@ -380,27 +380,49 @@ function SettingsContent({
   falApiKey: string;
   setFalApiKey: (key: string) => void;
 }) {
+  const [apiKeyOpen, setApiKeyOpen] = useState(false);
+
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>FAL API Key</Label>
-        <Input
-          type="password"
-          placeholder="Your fal.ai API key"
-          value={falApiKey}
-          onChange={(e) => setFalApiKey(e.target.value)}
-        />
-        <p className="text-xs text-muted-foreground">
-          Get a key at{" "}
-          <a
-            href="https://fal.ai/dashboard/keys"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            fal.ai/dashboard/keys
-          </a>
-        </p>
+      <div className="rounded-md border">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between p-3 text-left"
+          onClick={() => setApiKeyOpen(!apiKeyOpen)}
+        >
+          <div className="flex items-center gap-2">
+            <Label className="cursor-pointer">FAL API Key</Label>
+            {falApiKey && (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+          </div>
+          <span className={`text-sm text-muted-foreground transition-transform ${apiKeyOpen ? "rotate-180" : ""}`}>
+            ▼
+          </span>
+        </button>
+        {apiKeyOpen && (
+          <div className="space-y-2 border-t px-3 pb-3 pt-2">
+            <Input
+              type="password"
+              placeholder="Your fal.ai API key"
+              value={falApiKey}
+              onChange={(e) => setFalApiKey(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Get a key at{" "}
+              <a
+                href="https://fal.ai/dashboard/keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                fal.ai/dashboard/keys
+              </a>
+            </p>
+          </div>
+        )}
       </div>
 
       <Separator />
@@ -469,28 +491,6 @@ function SettingsContent({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Safety Tolerance</Label>
-        <Select
-          value={settings.safety_tolerance}
-          onValueChange={(v) =>
-            v != null && setSettings((s) => ({ ...s, safety_tolerance: v }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">1 (Most strict)</SelectItem>
-            <SelectItem value="2">2</SelectItem>
-            <SelectItem value="3">3</SelectItem>
-            <SelectItem value="4">4 (Default)</SelectItem>
-            <SelectItem value="5">5</SelectItem>
-            <SelectItem value="6">6 (Least strict)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       <Separator />
 
       <div className="space-y-2">
@@ -506,57 +506,19 @@ function SettingsContent({
             }))
           }
         />
-        <p className="text-xs text-muted-foreground">
-          Set a seed for reproducible results
+        <p className="text-sm text-muted-foreground">
+          Same seed + same prompt = same image.{" "}
+          <span className="cursor-help underline decoration-dotted" title="A seed is a number that controls the randomness of generation. Leave blank for a random result each time. Set a specific number (e.g. 42) to get the exact same image when using the same prompt — useful for tweaking a prompt while keeping the same face.">
+            How does this work?
+          </span>
         </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Thinking Level</Label>
-        <Select
-          value={settings.thinking_level ?? "none"}
-          onValueChange={(v) =>
-            v != null &&
-            setSettings((s) => ({
-              ...s,
-              thinking_level: v === "none" ? null : v,
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">None</SelectItem>
-            <SelectItem value="minimal">Minimal (+$0.002)</SelectItem>
-            <SelectItem value="high">High (+$0.002)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="web-search"
-          checked={settings.enable_web_search}
-          onChange={(e) =>
-            setSettings((s) => ({
-              ...s,
-              enable_web_search: e.target.checked,
-            }))
-          }
-          className="h-4 w-4 rounded border-input"
-        />
-        <Label htmlFor="web-search" className="text-sm font-normal">
-          Enable web search (+$0.015)
-        </Label>
       </div>
 
       <Separator />
 
-      <div className="rounded-md bg-muted p-3 text-sm">
+      <div className="rounded-md bg-muted p-3">
         <p className="font-medium">Estimated cost</p>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           $0.08 per image at 1K
           {settings.resolution === "2K" && " ($0.12 at 2K)"}
           {settings.resolution === "4K" && " ($0.16 at 4K)"}
@@ -1129,7 +1091,7 @@ function Home() {
             type="checkbox"
             checked={aiParams[paramKey].selected.includes(opt)}
             onChange={() => toggleParamOption(paramKey, opt)}
-            className="h-3.5 w-3.5 rounded border-input"
+            className="h-5 w-5 rounded border-input"
           />
           <span className="text-xs">{opt}</span>
         </label>
@@ -1293,7 +1255,7 @@ function Home() {
                                   },
                                 }))
                               }
-                              className="h-4 w-4 shrink-0 rounded border-input"
+                              className="h-5 w-5 shrink-0 rounded border-input"
                             />
                             <button
                               type="button"
@@ -1885,7 +1847,7 @@ function Home() {
                         onChange={() =>
                           toggleParamOption(activeParamDef.key, opt)
                         }
-                        className="h-4 w-4 shrink-0 rounded border-input"
+                        className="h-5 w-5 shrink-0 rounded border-input"
                       />
                       <span className="text-sm">{opt}</span>
                     </label>
