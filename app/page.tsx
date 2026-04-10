@@ -307,7 +307,7 @@ function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateRandomPrompt(): string {
+function generateRandomPrompt(params?: Record<string, ParamConfig>): string {
   const age = randomPick(RANDOM_TRAITS.ages);
   const ethnicity = randomPick(RANDOM_TRAITS.ethnicities);
   const gender = randomPick(RANDOM_TRAITS.genders);
@@ -318,11 +318,20 @@ function generateRandomPrompt(): string {
   const lighting = randomPick(RANDOM_TRAITS.lighting);
   const setting = randomPick(RANDOM_TRAITS.settings);
   const filmStyle = randomPick(RANDOM_TRAITS.filmStyles);
-  const bodyAngle = randomPick(RANDOM_TRAITS.bodyAngles);
-  const pose = randomPick(RANDOM_TRAITS.poses);
-  const dof = randomPick(RANDOM_TRAITS.depthsOfField);
-  const candidness = randomPick(RANDOM_TRAITS.candidnessLevels);
-  const camera = randomPick(RANDOM_TRAITS.cameraTypes);
+
+  // Controllable params: respect aiParams toggles if provided
+  const pickControlled = (key: string, defaults: readonly string[]): string | null => {
+    if (params && !params[key]?.enabled) return null;
+    const pool = params?.[key]?.selected?.length ? params[key].selected : [...defaults];
+    return randomPick(pool);
+  };
+
+  const bodyAngle = pickControlled("bodyAngle", RANDOM_TRAITS.bodyAngles);
+  const pose = pickControlled("pose", RANDOM_TRAITS.poses);
+  const dof = pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField);
+  const candidness = pickControlled("candidness", RANDOM_TRAITS.candidnessLevels);
+  const camera = pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
+
   const skin = randomPick(RANDOM_TRAITS.skinDetails);
   const accessory = randomPick(RANDOM_TRAITS.accessories);
   const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
@@ -337,22 +346,24 @@ function generateRandomPrompt(): string {
   const templates = [
     // Scene-first: leads with where, then who
     () =>
-      `${setting}, ${lighting}. A ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}, ${pose}, wearing ${clothing}${accessoryPart}. ${expression}, ${bodyAngle}. ${dof}, ${candidness}${filmPart}. ${camera}${imperfectionPart}`,
+      `${setting}, ${lighting}. A ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${pose ? `, ${pose}` : ""}, wearing ${clothing}${accessoryPart}. ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${[dof, candidness].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
     // Action-first: leads with what the person is doing
     () =>
-      `A ${age}-year-old ${ethnicity} ${gender} ${pose}, ${candidness}. ${hairColor} ${hairStyle}, wearing ${clothing}${accessoryPart}. ${expression}${skinPart}. ${setting}, ${lighting}. ${bodyAngle}, ${dof}${filmPart}. ${camera}${imperfectionPart}`,
+      `A ${age}-year-old ${ethnicity} ${gender}${pose ? ` ${pose}` : ""}${candidness ? `, ${candidness}` : ""}. ${hairColor} ${hairStyle}, wearing ${clothing}${accessoryPart}. ${expression}${skinPart}. ${setting}, ${lighting}. ${[bodyAngle, dof].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
     // Camera-first: leads with the technical look
     () =>
-      `${camera}. ${age}-year-old ${ethnicity} ${gender}, ${expression}, ${bodyAngle}. ${hairColor} ${hairStyle}${skinPart}, wearing ${clothing}${accessoryPart}. ${pose}, ${setting}. ${lighting}, ${dof}. ${candidness}${filmPart}${imperfectionPart}`,
+      `${camera ? `${camera}. ` : ""}${age}-year-old ${ethnicity} ${gender}, ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${hairColor} ${hairStyle}${skinPart}, wearing ${clothing}${accessoryPart}. ${[pose, setting].filter(Boolean).join(", ")}. ${lighting}${dof ? `, ${dof}` : ""}. ${candidness ?? ""}${filmPart}${imperfectionPart}`,
     // Descriptive: reads more like a caption
     () =>
-      `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}, ${pose}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${bodyAngle}, ${dof}, ${candidness}, ${camera}${filmPart}${imperfectionPart}`,
+      `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}${pose ? `, ${pose}` : ""}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${[bodyAngle, dof, candidness, camera].filter(Boolean).join(", ")}${filmPart}${imperfectionPart}`,
   ];
 
   return randomPick(templates)()
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
+    .replace(/,\s*,/g, ",")
+    .replace(/\.\s*$/, "")
     .trim();
 }
 
@@ -398,9 +409,19 @@ function SettingsContent({
               </svg>
             )}
           </div>
-          <span className={`text-sm text-muted-foreground transition-transform ${apiKeyOpen ? "rotate-180" : ""}`}>
-            ▼
-          </span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`text-muted-foreground transition-transform duration-200 ${apiKeyOpen ? "rotate-180" : ""}`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </button>
         {apiKeyOpen && (
           <div className="space-y-2 border-t px-3 pb-3 pt-2">
@@ -535,8 +556,10 @@ function Home() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [singlePrompt, setSinglePrompt] = useState("");
-  const [bulkPrompts, setBulkPrompts] = useState("");
+  const [generateCount, setGenerateCount] = useState(1);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [showCustomPrompt, setShowCustomPrompt] = useState(false);
+  const [csvPrompts, setCsvPrompts] = useState<string[]>([]);
   const [falApiKey, setFalApiKeyState] = useState("");
   const abortRef = useRef(false);
 
@@ -559,9 +582,6 @@ function Home() {
   });
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
   const [paramDrawerKey, setParamDrawerKey] = useState<string | null>(null);
-  const [aiPromptCount, setAiPromptCount] = useState(5);
-  const [aiPrompts, setAiPrompts] = useState("");
-  const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
 
   // Saved library state
   const [savedImages, setSavedImages] = useState<GeneratedImage[]>([]);
@@ -773,8 +793,14 @@ function Home() {
     [settings, falApiKey]
   );
 
-  const handleSingleGenerate = () => {
-    const prompt = singlePrompt.trim();
+  const handleGenerate = () => {
+    const count = Math.max(1, Math.min(50, generateCount));
+    const prompts = Array.from({ length: count }, () => generateRandomPrompt(aiParams));
+    generateImages(prompts);
+  };
+
+  const handleCustomGenerate = () => {
+    const prompt = customPrompt.trim();
     if (!prompt) {
       toast.error("Enter a prompt first");
       return;
@@ -782,22 +808,12 @@ function Home() {
     generateImages([prompt]);
   };
 
-  const handleRandomGenerate = () => {
-    const prompt = generateRandomPrompt();
-    setSinglePrompt(prompt);
-    generateImages([prompt]);
-  };
-
-  const handleBulkGenerate = () => {
-    const prompts = bulkPrompts
-      .split("\n")
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-    if (prompts.length === 0) {
-      toast.error("No prompts found. Enter one prompt per line.");
+  const handleCSVGenerate = () => {
+    if (csvPrompts.length === 0) {
+      toast.error("Upload a file first");
       return;
     }
-    generateImages(prompts);
+    generateImages(csvPrompts);
   };
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -819,56 +835,13 @@ function Home() {
         p.startsWith('"') && p.endsWith('"') ? p.slice(1, -1) : p
       );
 
-      setBulkPrompts(cleaned.join("\n"));
+      setCsvPrompts(cleaned);
       toast.success(`Loaded ${cleaned.length} prompts from file`);
     };
     reader.readAsText(file);
     e.target.value = "";
   };
 
-  const handleGenerateAIPrompts = async () => {
-    setIsGeneratingPrompts(true);
-    try {
-      const paramSelections: Record<string, string[]> = {};
-      for (const [key, cfg] of Object.entries(aiParams)) {
-        if (cfg.enabled && cfg.selected.length > 0) {
-          paramSelections[key] = cfg.selected;
-        }
-      }
-
-      const res = await fetch("/api/generate-prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count: aiPromptCount, paramSelections }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
-
-      setAiPrompts(data.prompts.join("\n"));
-      toast.success(`Generated ${data.prompts.length} prompts`);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to generate prompts"
-      );
-    } finally {
-      setIsGeneratingPrompts(false);
-    }
-  };
-
-  const handleAIGenerate = () => {
-    const prompts = aiPrompts
-      .split("\n")
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-    if (prompts.length === 0) {
-      toast.error("Generate prompts first");
-      return;
-    }
-    generateImages(prompts);
-  };
 
   const downloadImage = async (image: GeneratedImage) => {
     try {
@@ -961,7 +934,7 @@ function Home() {
     if (regeneratingRef.current.has(id)) return;
     regeneratingRef.current.add(id);
 
-    const newPrompt = generateRandomPrompt();
+    const newPrompt = generateRandomPrompt(aiParams);
 
     setImages((prev) =>
       prev.map((img) =>
@@ -1131,114 +1104,112 @@ function Home() {
               <CardTitle>Prompts</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="single">
-                <TabsList className="mb-4 w-full justify-start overflow-x-auto">
-                  <TabsTrigger value="single" className="text-xs sm:text-sm">
-                    Single
+              <Tabs defaultValue="generate">
+                <TabsList className="mb-4 w-full justify-start overflow-x-auto !h-11 p-1">
+                  <TabsTrigger value="generate" className="text-xs sm:text-sm">
+                    Generate
                   </TabsTrigger>
-                  <TabsTrigger value="bulk" className="text-xs sm:text-sm">
-                    Bulk
+                  <TabsTrigger value="options" className="text-xs sm:text-sm">
+                    Options
                   </TabsTrigger>
-                  <TabsTrigger value="upload" className="text-xs sm:text-sm">
+                  <TabsTrigger value="csv" className="text-xs sm:text-sm">
                     CSV
-                  </TabsTrigger>
-                  <TabsTrigger value="ai" className="text-xs sm:text-sm">
-                    AI Prompts
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="single" className="space-y-3">
-                  <Textarea
-                    placeholder="Describe the profile photo you want to generate..."
-                    value={singlePrompt}
-                    onChange={(e) => setSinglePrompt(e.target.value)}
-                    rows={3}
-                  />
-                  <div className="flex flex-col gap-2 sm:flex-row">
+                {/* Generate Tab */}
+                <TabsContent value="generate" className="space-y-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="space-y-1">
+                      <Label className="text-sm">How many images?</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={generateCount}
+                        onChange={(e) =>
+                          setGenerateCount(
+                            Math.min(50, Math.max(1, parseInt(e.target.value) || 1))
+                          )
+                        }
+                        className="w-full sm:w-24"
+                      />
+                    </div>
                     <Button
-                      onClick={handleSingleGenerate}
-                      disabled={isGenerating || !singlePrompt.trim()}
-                      className="w-full sm:w-auto"
-                    >
-                      {isGenerating ? "Generating..." : "Generate"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setSinglePrompt(generateRandomPrompt())}
+                      onClick={handleGenerate}
                       disabled={isGenerating}
                       className="w-full sm:w-auto"
                     >
-                      Randomize
+                      {isGenerating
+                        ? "Generating..."
+                        : `Generate ${generateCount} Image${generateCount > 1 ? "s" : ""}`}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleRandomGenerate}
-                      disabled={isGenerating}
-                      className="w-full sm:w-auto"
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Random prompts are created automatically using your Options settings.
+                  </p>
+
+                  <Separator />
+
+                  {/* Collapsible custom prompt */}
+                  <div>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setShowCustomPrompt(!showCustomPrompt)}
                     >
-                      Randomize & Generate
-                    </Button>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`transition-transform duration-200 ${showCustomPrompt ? "rotate-90" : ""}`}
+                      >
+                        <polyline points="9 6 15 12 9 18" />
+                      </svg>
+                      Custom prompt
+                    </button>
+                    {showCustomPrompt && (
+                      <div className="mt-2 space-y-2">
+                        <Textarea
+                          placeholder="Describe the profile photo you want to generate..."
+                          value={customPrompt}
+                          onChange={(e) => setCustomPrompt(e.target.value)}
+                          rows={3}
+                        />
+                        <Button
+                          onClick={handleCustomGenerate}
+                          disabled={isGenerating || !customPrompt.trim()}
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                        >
+                          {isGenerating ? "Generating..." : "Generate from Prompt"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="bulk" className="space-y-3">
-                  <Textarea
-                    placeholder={
-                      "Paste one prompt per line...\n\nPortrait of a 30-year-old woman with brown hair...\nHeadshot of a 45-year-old man with glasses..."
-                    }
-                    value={bulkPrompts}
-                    onChange={(e) => setBulkPrompts(e.target.value)}
-                    rows={8}
-                    className="font-mono text-sm"
-                  />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {
-                        bulkPrompts
-                          .split("\n")
-                          .filter((p) => p.trim().length > 0).length
-                      }{" "}
-                      prompts detected
-                    </span>
-                    <Button
-                      onClick={handleBulkGenerate}
-                      disabled={isGenerating || !bulkPrompts.trim()}
-                    >
-                      {isGenerating ? "Generating..." : "Generate All"}
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="upload" className="space-y-3">
-                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center sm:p-8">
-                    <p className="mb-2 text-sm text-muted-foreground">
-                      Upload a CSV or text file with one prompt per line
-                    </p>
-                    <Input
-                      type="file"
-                      accept=".csv,.txt,.md"
-                      onChange={handleCSVUpload}
-                      className="mx-auto max-w-xs"
-                    />
-                  </div>
-                  {bulkPrompts && (
-                    <p className="text-sm text-muted-foreground">
-                      {
-                        bulkPrompts
-                          .split("\n")
-                          .filter((p) => p.trim().length > 0).length
-                      }{" "}
-                      prompts loaded - switch to Bulk tab to review and generate
-                    </p>
-                  )}
-                </TabsContent>
-
-                {/* AI Prompts Tab */}
-                <TabsContent value="ai" className="space-y-4">
+                {/* Options Tab */}
+                <TabsContent value="options" className="space-y-4">
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
                       Photography Parameters
                     </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Control which traits are included in randomly generated prompts.
+                      {" "}
+                      {(() => {
+                        const enabled = AI_PARAM_DEFS.filter((d) => aiParams[d.key].enabled);
+                        const totalSelected = enabled.reduce((sum, d) => sum + aiParams[d.key].selected.length, 0);
+                        const totalOptions = enabled.reduce((sum, d) => sum + d.options.length, 0);
+                        return `${totalSelected}/${totalOptions} options selected across ${enabled.length}/${AI_PARAM_DEFS.length} params.`;
+                      })()}
+                    </p>
                     <div className="space-y-2">
                       {AI_PARAM_DEFS.map(({ key, label, desc, options }) => (
                         <div key={key} className="rounded-md border">
@@ -1302,70 +1273,44 @@ function Home() {
                       ))}
                     </div>
                   </div>
+                </TabsContent>
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <div className="space-y-1">
-                      <Label className="text-sm">Number of prompts</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={50}
-                        value={aiPromptCount}
-                        onChange={(e) =>
-                          setAiPromptCount(
-                            Math.min(
-                              50,
-                              Math.max(1, parseInt(e.target.value) || 1)
-                            )
-                          )
-                        }
-                        className="w-full sm:w-24"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleGenerateAIPrompts}
-                      disabled={isGeneratingPrompts}
-                      variant="outline"
-                      className="w-full sm:w-auto"
-                    >
-                      {isGeneratingPrompts
-                        ? "Generating Prompts..."
-                        : "Generate Prompts with AI"}
-                    </Button>
+                {/* CSV Tab */}
+                <TabsContent value="csv" className="space-y-3">
+                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center sm:p-8">
+                    <p className="mb-2 text-sm text-muted-foreground">
+                      Upload a CSV or text file with one prompt per line
+                    </p>
+                    <Input
+                      type="file"
+                      accept=".csv,.txt,.md"
+                      onChange={handleCSVUpload}
+                      className="mx-auto max-w-xs"
+                    />
                   </div>
-
-                  {aiPrompts && (
-                    <>
-                      <Textarea
-                        value={aiPrompts}
-                        onChange={(e) => setAiPrompts(e.target.value)}
-                        rows={isMobile ? 8 : 12}
-                        className="font-mono text-sm"
-                        placeholder="AI-generated prompts will appear here..."
-                      />
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          {
-                            aiPrompts
-                              .split("\n")
-                              .filter((p) => p.trim().length > 0).length
-                          }{" "}
-                          prompts ready
-                        </span>
+                  {csvPrompts.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        {csvPrompts.length} prompts loaded
+                      </span>
+                      <div className="flex gap-2">
                         <Button
-                          onClick={handleAIGenerate}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCsvPrompts([])}
+                        >
+                          Clear
+                        </Button>
+                        <Button
+                          onClick={handleCSVGenerate}
                           disabled={isGenerating}
                         >
                           {isGenerating
                             ? "Generating..."
-                            : `Generate ${
-                                aiPrompts
-                                  .split("\n")
-                                  .filter((p) => p.trim().length > 0).length
-                              } Images`}
+                            : `Generate ${csvPrompts.length} Image${csvPrompts.length > 1 ? "s" : ""}`}
                         </Button>
                       </div>
-                    </>
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>
