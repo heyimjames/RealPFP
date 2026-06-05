@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { AlertTriangleIcon, RotateCwIcon } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -87,7 +89,6 @@ const RANDOM_TRAITS = {
     "eyes crinkled from laughing a moment ago",
     "resting face with a hint of tiredness around the eyes",
     "one eyebrow slightly raised, skeptical look",
-    "mid-yawn they're trying to suppress",
     "concentrating expression, lips pressed together",
   ],
   clothing: [
@@ -101,8 +102,12 @@ const RANDOM_TRAITS = {
     "a slightly wrinkled linen shirt", "a faded band t-shirt under an open flannel",
     "a well-worn leather jacket", "a rain jacket half-zipped",
     "a simple grey v-neck t-shirt", "a puffer vest over a long-sleeve thermal",
-    "scrubs with a lanyard visible", "a plaid shirt with one side untucked",
+    "a plaid shirt with one side untucked",
     "a zip-up fleece", "a denim jacket layered over a hoodie",
+    "lightly baggy brown smart trousers and a tucked plain white tee",
+    "a boxy short-sleeve cream t-shirt",
+    "an oversized beige linen shirt, slightly creased",
+    "wide-leg charcoal trousers with a soft grey crewneck tucked in",
   ],
   lighting: [
     "soft overcast light, no hard shadows",
@@ -120,6 +125,13 @@ const RANDOM_TRAITS = {
     "single overhead kitchen light, unflattering angle",
     "porch light at dusk, yellowish",
     "bright open shade, even and cool",
+    "phone camera flatness, slightly overexposed and washed out",
+    "tungsten interior with no white balance correction, warm-yellow cast",
+    "cool blue twilight, slightly underexposed",
+    "uneven exposure with a bright window blown out behind them",
+    "slightly muted indoor light, shadows a touch deeper than ideal",
+    "iPhone HDR look, slightly crunchy with shadows lifted unnaturally",
+    "overcast daylight with cool flat tones, slightly low contrast",
   ],
   settings: [
     "outdoors with blurred greenery behind",
@@ -139,8 +151,7 @@ const RANDOM_TRAITS = {
     "standing in a doorway, half-inside half-outside",
     "backyard patio with string lights out of focus behind",
     "subway platform, tiled wall behind",
-    "grocery store parking lot",
-    "hotel lobby with generic art on the wall",
+    "luxury hotel lobby with warm wood paneling and soft amber lamp light behind them",
     "gym entrance, glass door reflecting behind them",
   ],
   filmStyles: [
@@ -184,6 +195,18 @@ const RANDOM_TRAITS = {
     "adjusting their glasses with one hand",
     "arms at their sides, slightly awkward",
     "leaning on a railing",
+    "one hand running through their hair",
+    "looking off to the side with a slight smile",
+    "head tilted slightly, considering something",
+    "hands clasped loosely in front, fingers interlaced",
+    "one hand resting on the opposite forearm, arms folded casually",
+    "leaning forward slightly with elbows on knees, hands clasped",
+    "hand lifted to chin, lightly thoughtful",
+    "leaning casually against a doorframe",
+    "looking back over one shoulder, soft eye contact",
+    "one hand tucked into a back pocket, the other relaxed",
+    "lifting a coffee cup partway toward the mouth",
+    "sleeves pushed up, hands clasped at the wrist",
   ],
   depthsOfField: [
     "everything sharp like an iPhone photo, deep focus",
@@ -252,6 +275,18 @@ const RANDOM_TRAITS = {
     "stud earrings",
     "a lanyard with an ID badge clipped to the shirt",
     "sunglasses pushed up on the forehead",
+    "dark sunglasses on, lenses reflecting the surroundings",
+    "round tortoiseshell sunglasses worn",
+    "a vintage film camera slung around the neck on a leather strap",
+    "a 35mm camera held casually at chest level",
+    "over-ear headphones resting loose around the neck",
+    "wired earphones in, the cord trailing into a pocket",
+    "a hoodie tied loosely around the neck by the sleeves",
+    "a canvas tote bag strap visible over one shoulder",
+    "a leather crossbody bag strap across the chest",
+    "a knit scarf loose around the neck",
+    "a slim leather watch with a worn-in band",
+    "a single delicate chain bracelet",
   ],
   photoImperfections: [
     "slightly off-center framing",
@@ -307,40 +342,125 @@ function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateRandomPrompt(params?: Record<string, ParamConfig>): string {
-  const age = randomPick(RANDOM_TRAITS.ages);
+type GenerationMode = "profile" | "candid";
+
+// In Profile mode we filter out entries that produce real-but-unflattering
+// photos — harsh lighting, tired/distracted expressions, drab backdrops.
+// In Candid mode these all stay in to preserve the gritty-documentary feel.
+const PROFILE_MODE_EXCLUDES = {
+  expressions: [
+    "looking slightly past the camera, distracted",
+    "resting face with a hint of tiredness around the eyes",
+    "one eyebrow slightly raised, skeptical look",
+  ],
+  lighting: [
+    "bright midday sun creating hard shadows under the nose and chin",
+    "harsh fluorescent overhead lighting",
+    "single overhead kitchen light, unflattering angle",
+  ],
+  settings: [
+    "parking lot with cars behind them",
+    "plain apartment wall with a light switch visible",
+    "concrete stairwell in an apartment building",
+    "subway platform, tiled wall behind",
+    "university hallway with lockers",
+  ],
+  depthsOfField: [
+    "heavy creamy bokeh, 85mm f/1.4 wide open",
+    "medium format shallow focus with smooth background separation",
+    "moderate bokeh, 85mm f/2 lens",
+    "slight background softness, shot on 50mm f/2.8",
+  ],
+} as const;
+
+function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
+  list: readonly string[],
+  category: K,
+  mode: GenerationMode
+): string[] {
+  if (mode === "candid") return [...list];
+  const excludes = new Set<string>(PROFILE_MODE_EXCLUDES[category]);
+  return list.filter((item) => !excludes.has(item));
+}
+
+function generateRandomPrompt(
+  params?: Record<string, ParamConfig>,
+  ageRange?: [number, number],
+  mode: GenerationMode = "profile"
+): string {
+  const [ageMin, ageMax] = ageRange ?? [25, 45];
+  const age = Math.floor(Math.random() * (ageMax - ageMin + 1)) + ageMin;
   const ethnicity = randomPick(RANDOM_TRAITS.ethnicities);
   const gender = randomPick(RANDOM_TRAITS.genders);
   const hairStyle = randomPick(RANDOM_TRAITS.hairStyles);
   const hairColor = randomPick(RANDOM_TRAITS.hairColors);
-  const expression = randomPick(RANDOM_TRAITS.expressions);
+  const expression = randomPick(applyModeFilter(RANDOM_TRAITS.expressions, "expressions", mode));
   const clothing = randomPick(RANDOM_TRAITS.clothing);
-  const lighting = randomPick(RANDOM_TRAITS.lighting);
-  const setting = randomPick(RANDOM_TRAITS.settings);
+  const lighting = randomPick(applyModeFilter(RANDOM_TRAITS.lighting, "lighting", mode));
+  const setting = randomPick(applyModeFilter(RANDOM_TRAITS.settings, "settings", mode));
   const filmStyle = randomPick(RANDOM_TRAITS.filmStyles);
 
-  // Controllable params: respect aiParams toggles if provided
-  const pickControlled = (key: string, defaults: readonly string[]): string | null => {
+  // Controllable params: respect aiParams toggles + apply mode filter so
+  // Profile mode can override even an explicit user selection of pro-bokeh.
+  const pickControlled = (
+    key: string,
+    defaults: readonly string[],
+    modeCategory?: keyof typeof PROFILE_MODE_EXCLUDES
+  ): string | null => {
     if (params && !params[key]?.enabled) return null;
-    const pool = params?.[key]?.selected?.length ? params[key].selected : [...defaults];
+    let pool = params?.[key]?.selected?.length ? [...params[key].selected] : [...defaults];
+    if (modeCategory) pool = applyModeFilter(pool, modeCategory, mode);
+    if (!pool.length) pool = [...defaults];
     return randomPick(pool);
   };
 
   const bodyAngle = pickControlled("bodyAngle", RANDOM_TRAITS.bodyAngles);
   const pose = pickControlled("pose", RANDOM_TRAITS.poses);
-  const dof = pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField);
+  const dof = pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField, "depthsOfField");
   const candidness = pickControlled("candidness", RANDOM_TRAITS.candidnessLevels);
   const camera = pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
 
   const skin = randomPick(RANDOM_TRAITS.skinDetails);
-  const accessory = randomPick(RANDOM_TRAITS.accessories);
+  let accessory = randomPick(RANDOM_TRAITS.accessories);
+  // Lanyards skewed the output toward "corporate badge" looks — gate to ~25% pass.
+  if (accessory.includes("lanyard") && Math.random() > 0.25) {
+    accessory = "no accessories";
+  }
+  // Profile mode: real PFPs rarely have curated props. Gate accessories to ~50%
+  // when picked, so the final accessory rate drops from ~85% to ~45%.
+  if (mode === "profile" && accessory !== "no accessories" && Math.random() > 0.5) {
+    accessory = "no accessories";
+  }
   const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
 
-  // Randomly include optional details to break the formula
-  const skinPart = Math.random() > 0.25 ? `, ${skin}` : "";
+  // Randomly include optional details to break the formula.
+  // Profile mode samples imperfections less often to keep results flattering;
+  // Candid mode keeps the original "gritty real" rates.
+  const skinThreshold = mode === "profile" ? 0.5 : 0.25;
+  const imperfectionThreshold = mode === "profile" ? 0.75 : 0.45;
+  const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
   const accessoryPart = accessory !== "no accessories" ? `, ${accessory}` : "";
-  const imperfectionPart = Math.random() > 0.45 ? `. ${imperfection}` : "";
-  const filmPart = Math.random() > 0.15 ? `, ${filmStyle}` : "";
+  const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
+  // Film-style references heavily steer toward graded/cinematic looks — the
+  // biggest single AI-tell after smooth skin. Profile mode uses them sparingly.
+  const filmThreshold = mode === "profile" ? 0.65 : 0.15;
+  const filmPart = Math.random() > filmThreshold ? `, ${filmStyle}` : "";
+
+  // Profile mode biases framing toward PFP-style crops, but mixes tight
+  // portrait phrasing with casual-snapshot phrasing so results don't all read
+  // as "studio headshot" (a major AI tell).
+  const profileFramings = [
+    "Head and shoulders portrait, tight crop on the face",
+    "Close-up portrait, face fills most of the frame",
+    "Shoulders-up framing, eyes in the upper third",
+    "Medium close-up, head and upper chest in frame",
+    "Casual phone snapshot, head and shoulders, slightly off-center",
+    "Quick candid taken by a friend, chest-up, not perfectly composed",
+    "Selfie-distance framing, face fills the frame, slightly off-balance",
+    "Phone-camera waist-up shot, framed casually",
+  ];
+  const framingPrefix =
+    mode === "profile" ? `${randomPick(profileFramings)}. ` : "";
 
   // Multiple template structures so prompts don't all read identically
   const templates = [
@@ -358,7 +478,17 @@ function generateRandomPrompt(params?: Record<string, ParamConfig>): string {
       `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}${pose ? `, ${pose}` : ""}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${[bodyAngle, dof, candidness, camera].filter(Boolean).join(", ")}${filmPart}${imperfectionPart}`,
   ];
 
-  return randomPick(templates)()
+  // Suffix combines anti-AI-tell language with the anti-frame instruction.
+  // Order matters: skin/exposure language goes first because it's the most
+  // common AI giveaway in the model's baseline output.
+  const profileAntiAI =
+    mode === "profile"
+      ? ". Real skin with visible pores, fine lines, and natural blemishes — not airbrushed, not AI-smooth, not retouched. Imperfect lighting and exposure, not professionally graded or studio-lit. Background mostly in focus, deep depth of field — no creamy bokeh, no shallow focus, no wide-aperture background blur. Off-center asymmetric composition, subject not perfectly centered, slight cropping imperfections, casually framed not professionally composed. Phone snapshot quality, not a portrait session"
+      : "";
+  const noBorderSuffix =
+    ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
+
+  return (framingPrefix + randomPick(templates)() + profileAntiAI + noBorderSuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
@@ -391,7 +521,9 @@ function SettingsContent({
   falApiKey: string;
   setFalApiKey: (key: string) => void;
 }) {
-  const [apiKeyOpen, setApiKeyOpen] = useState(false);
+  // Auto-expand the API key panel when no key is set so first-time users
+  // can see immediately where to paste it.
+  const [apiKeyOpen, setApiKeyOpen] = useState(!falApiKey);
 
   return (
     <div className="space-y-4">
@@ -556,7 +688,8 @@ function Home() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [generateCount, setGenerateCount] = useState(1);
+  const [generateCountInput, setGenerateCountInput] = useState("1");
+  const generateCount = Math.min(50, Math.max(1, parseInt(generateCountInput) || 1));
   const [customPrompt, setCustomPrompt] = useState("");
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [csvPrompts, setCsvPrompts] = useState<string[]>([]);
@@ -580,6 +713,8 @@ function Home() {
     candidness: { enabled: true, selected: [...RANDOM_TRAITS.candidnessLevels] },
     cameraType: { enabled: true, selected: [...RANDOM_TRAITS.cameraTypes] },
   });
+  const [ageRange, setAgeRange] = useState<[number, number]>([25, 45]);
+  const [mode, setMode] = useState<GenerationMode>("profile");
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
   const [paramDrawerKey, setParamDrawerKey] = useState<string | null>(null);
 
@@ -795,7 +930,7 @@ function Home() {
 
   const handleGenerate = () => {
     const count = Math.max(1, Math.min(50, generateCount));
-    const prompts = Array.from({ length: count }, () => generateRandomPrompt(aiParams));
+    const prompts = Array.from({ length: count }, () => generateRandomPrompt(aiParams, ageRange, mode));
     generateImages(prompts);
   };
 
@@ -862,24 +997,35 @@ function Home() {
       return;
     }
 
-    toast.info("Preparing ZIP file...");
+    toast.info(`Preparing ZIP of ${doneImages.length} images...`);
 
     const zip = new JSZip();
 
-    for (let i = 0; i < doneImages.length; i++) {
-      try {
-        const response = await fetch(doneImages[i].imageUrl);
-        const blob = await response.blob();
-        zip.file(
-          `profile-${String(i + 1).padStart(2, "0")}.${settings.output_format}`,
-          blob
-        );
-      } catch {
-        console.error(`Failed to fetch image ${i + 1}`);
-      }
+    const fetched = await Promise.all(
+      doneImages.map(async (img, i) => {
+        try {
+          const response = await fetch(img.imageUrl);
+          const blob = await response.blob();
+          return { i, blob };
+        } catch {
+          console.error(`Failed to fetch image ${i + 1}`);
+          return null;
+        }
+      })
+    );
+
+    for (const result of fetched) {
+      if (!result) continue;
+      zip.file(
+        `profile-${String(result.i + 1).padStart(2, "0")}.${settings.output_format}`,
+        result.blob
+      );
     }
 
-    const content = await zip.generateAsync({ type: "blob" });
+    const content = await zip.generateAsync({
+      type: "blob",
+      compression: "STORE",
+    });
     saveAs(content, `profile-pictures-${Date.now()}.zip`);
     toast.success(`Downloaded ${doneImages.length} images as ZIP`);
   };
@@ -934,7 +1080,7 @@ function Home() {
     if (regeneratingRef.current.has(id)) return;
     regeneratingRef.current.add(id);
 
-    const newPrompt = generateRandomPrompt(aiParams);
+    const newPrompt = generateRandomPrompt(aiParams, ageRange, mode);
 
     setImages((prev) =>
       prev.map((img) =>
@@ -1123,15 +1269,14 @@ function Home() {
                     <div className="space-y-1">
                       <Label className="text-sm">How many images?</Label>
                       <Input
-                        type="number"
-                        min={1}
-                        max={50}
-                        value={generateCount}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={generateCountInput}
                         onChange={(e) =>
-                          setGenerateCount(
-                            Math.min(50, Math.max(1, parseInt(e.target.value) || 1))
-                          )
+                          setGenerateCountInput(e.target.value.replace(/\D/g, "").slice(0, 2))
                         }
+                        onBlur={() => setGenerateCountInput(String(generateCount))}
                         className="w-full sm:w-24"
                       />
                     </div>
@@ -1197,6 +1342,63 @@ function Home() {
                 {/* Options Tab */}
                 <TabsContent value="options" className="space-y-4">
                   <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Mode</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMode("profile")}
+                          aria-pressed={mode === "profile"}
+                          className={`flex flex-col gap-1 rounded-md border p-3 text-left transition-colors ${
+                            mode === "profile"
+                              ? "border-foreground/70 bg-foreground/[0.03]"
+                              : "border-border hover:border-foreground/30 hover:bg-foreground/[0.015]"
+                          }`}
+                        >
+                          <span className="text-sm font-medium leading-none">
+                            Profile Picture
+                          </span>
+                          <span className="text-xs leading-snug text-muted-foreground">
+                            Flattering light, warm expressions — the photo you&apos;d actually post.
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMode("candid")}
+                          aria-pressed={mode === "candid"}
+                          className={`flex flex-col gap-1 rounded-md border p-3 text-left transition-colors ${
+                            mode === "candid"
+                              ? "border-foreground/70 bg-foreground/[0.03]"
+                              : "border-border hover:border-foreground/30 hover:bg-foreground/[0.015]"
+                          }`}
+                        >
+                          <span className="text-sm font-medium leading-none">
+                            Authentic Candid
+                          </span>
+                          <span className="text-xs leading-snug text-muted-foreground">
+                            Harsh light, tired faces, mundane spots — full documentary feel.
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-md border p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Age range</Label>
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {ageRange[0]} – {ageRange[1]}
+                        </span>
+                      </div>
+                      <Slider
+                        min={18}
+                        max={75}
+                        step={1}
+                        value={ageRange}
+                        onValueChange={(v) =>
+                          Array.isArray(v) && v.length === 2 &&
+                          setAgeRange([v[0] as number, v[1] as number])
+                        }
+                      />
+                    </div>
                     <Label className="text-sm font-medium">
                       Photography Parameters
                     </Label>
@@ -1320,7 +1522,7 @@ function Home() {
           {/* Progress */}
           {isGenerating && (
             <Card>
-              <CardContent className="pt-6">
+              <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span>
@@ -1582,15 +1784,20 @@ function Home() {
                           <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent sm:h-8 sm:w-8" />
                         </div>
                       ) : image.status === "error" ? (
-                        <div className="flex aspect-square flex-col items-center justify-center gap-1 p-3 text-center sm:gap-2 sm:p-4">
-                          <span className="text-xl sm:text-2xl">!</span>
-                          <p className="text-xs text-destructive line-clamp-2">
-                            {image.error || "Failed"}
+                        <div className="flex aspect-square flex-col items-center justify-center gap-2 bg-destructive/5 p-4 text-center sm:gap-3 sm:p-5">
+                          <AlertTriangleIcon
+                            className="size-5 text-destructive sm:size-6"
+                            strokeWidth={1.75}
+                            aria-hidden
+                          />
+                          <p className="line-clamp-4 text-xs leading-snug text-foreground/80 sm:text-[13px]">
+                            {image.error || "Something went wrong."}
                           </p>
                           <button
                             onClick={() => regenerateOne(image.id)}
-                            className="mt-1 text-xs text-blue-600 hover:underline"
+                            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
                           >
+                            <RotateCwIcon className="size-3" aria-hidden />
                             Retry
                           </button>
                         </div>

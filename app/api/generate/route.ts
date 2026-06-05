@@ -18,13 +18,16 @@ export async function POST(request: NextRequest) {
     };
   };
 
-  const falKey = falApiKey || process.env.FAL_KEY;
-  if (!falKey) {
+  if (!falApiKey) {
     return Response.json(
-      { error: "No FAL API key provided. Add your key in Settings." },
+      {
+        error:
+          "A fal.ai API key is required. Open Settings (top right) and paste your key from fal.ai/dashboard/keys. Keys are stored locally in your browser, never on the server.",
+      },
       { status: 400 }
     );
   }
+  const falKey = falApiKey;
 
   if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
     return Response.json({ error: "No prompts provided" }, { status: 400 });
@@ -77,11 +80,31 @@ export async function POST(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text();
+        let friendly = errorText;
+        try {
+          const parsed = JSON.parse(errorText);
+          const detail = parsed?.detail ?? parsed?.message ?? parsed?.error;
+          if (typeof detail === "string") friendly = detail;
+          else if (detail) friendly = JSON.stringify(detail);
+        } catch {
+          // not JSON — leave errorText as-is
+        }
+
+        // Map known patterns to clearer copy
+        if (/locked.*exhausted/i.test(friendly)) {
+          friendly =
+            "fal.ai account is out of credits. Add a custom API key in Settings, or top up your fal.ai balance.";
+        } else if (response.status === 401 || response.status === 403) {
+          friendly = friendly || "Authentication failed. Check your fal.ai API key in Settings.";
+        } else if (response.status === 429) {
+          friendly = "Rate limited by fal.ai. Wait a moment and try again.";
+        }
+
         results.push({
           prompt,
           imageUrl: null,
           description: "",
-          error: `API error ${response.status}: ${errorText}`,
+          error: friendly,
         });
         continue;
       }
