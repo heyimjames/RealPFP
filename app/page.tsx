@@ -1921,11 +1921,19 @@ function Home() {
       <footer className="mt-12 border-t border-stone pt-6 pb-2 sm:mt-16 sm:pt-8">
         <p className="meta-label">
           Made by{" "}
+          <img
+            src="/james-frewin.webp"
+            alt=""
+            width={20}
+            height={20}
+            className="inline-block size-5 rounded-full object-cover align-[-0.35em] ring-1 ring-stone"
+            aria-hidden
+          />{" "}
           <a
             href="https://jamesfrewin.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="prose-link text-foreground"
+            className="text-foreground underline underline-offset-[3px] decoration-charcoal/40 transition-colors fine-hover:hover:decoration-charcoal/80"
           >
             James Frewin
             <span className="sr-only"> (opens in new tab)</span>
@@ -1935,7 +1943,7 @@ function Home() {
             href="https://github.com/heyimjames"
             target="_blank"
             rel="noopener noreferrer"
-            className="prose-link"
+            className="transition-colors fine-hover:hover:text-foreground"
           >
             github.com/heyimjames
             <span className="sr-only"> (opens in new tab)</span>
