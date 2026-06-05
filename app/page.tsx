@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { AlertTriangleIcon, RotateCwIcon } from "lucide-react";
+import { AlertTriangleIcon, ChevronDownIcon, RotateCwIcon } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -1452,16 +1452,16 @@ function Home() {
                                   {desc}
                                 </p>
                               </div>
-                              <span className="text-xs text-muted-foreground ml-2 shrink-0">
+                              <span className="ml-2 flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
                                 {aiParams[key].selected.length}/
-                                {options.length}{" "}
-                                <span
-                                  className={`inline-block transition-transform ${
+                                {options.length}
+                                <ChevronDownIcon
+                                  className={`size-3.5 motion-safe:transition-transform duration-200 ease-out ${
                                     expandedParam === key ? "rotate-180" : ""
                                   }`}
-                                >
-                                  ▼
-                                </span>
+                                  strokeWidth={1.75}
+                                  aria-hidden
+                                />
                               </span>
                             </button>
                           </div>
