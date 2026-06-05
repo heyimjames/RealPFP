@@ -1220,10 +1220,9 @@ function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 pb-20 sm:px-6 sm:py-8 lg:px-8 lg:pb-8">
-      {/* Header — editorial: meta line, title, subtitle */}
+      {/* Header — editorial: title + subtitle */}
       <div className="mb-8 flex items-end justify-between gap-4 sm:mb-12">
         <div className="space-y-2">
-          <span className="meta-label">Profile picture generator · v1</span>
           <h1 className="text-3xl tracking-tight text-foreground sm:text-4xl">
             Profile pictures that look like real photos.
           </h1>
@@ -1917,6 +1916,32 @@ function Home() {
           </Card>
         </div>
       </div>
+
+      {/* Footer — credit */}
+      <footer className="mt-12 border-t border-stone pt-6 pb-2 sm:mt-16 sm:pt-8">
+        <p className="meta-label">
+          Made by{" "}
+          <a
+            href="https://jamesfrewin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="prose-link text-foreground"
+          >
+            James Frewin
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
+          {" · "}
+          <a
+            href="https://github.com/heyimjames"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="prose-link"
+          >
+            github.com/heyimjames
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
+        </p>
+      </footer>
 
       {/* ==================== DRAWERS ==================== */}
 
