@@ -3,6 +3,11 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/* Hover only on devices with a true pointer (mouse/trackpad).
+   Prevents the iOS "tap leaves :hover stuck" footgun. */
+@custom-variant fine-hover (@media (hover: hover) and (pointer: fine));
+/* Use `motion-safe:` to opt animations in only when motion is allowed. */
+@custom-variant motion-safe (@media (prefers-reduced-motion: no-preference));
 
 @theme inline {
     --font-heading: var(--font-sans);
@@ -38,6 +43,14 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    /* Jack & Jill brand tokens */
+    --color-paper-1: var(--paper-1);
+    --color-paper-2: var(--paper-2);
+    --color-paper-3: var(--paper-3);
+    --color-stone: var(--stone);
+    --color-charcoal: var(--charcoal);
+    --color-body: var(--body);
+    --color-body-muted: var(--body-muted);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -48,83 +61,147 @@
 }
 
 :root {
-    --background: oklch(0.985 0.012 75);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    /* === Jack & Jill core palette === */
+    --white: #FFFFFF;
+    --paper-1: #F9F9F6;
+    --paper-2: #F8F8F3;
+    --paper-3: #F2F2EB;
+    --stone: #EBE9E1;
+    --charcoal: #100F0F;
+
+    /* Charcoal mixes for ink hierarchy */
+    --body: color-mix(in srgb, var(--charcoal) 72%, var(--white));
+    --body-muted: color-mix(in srgb, var(--charcoal) 58%, var(--white));
+    --muted-foreground: color-mix(in srgb, var(--charcoal) 46%, var(--white));
+    --charcoal-hover: color-mix(in srgb, var(--charcoal) 78%, var(--white));
+    --rule: color-mix(in srgb, var(--charcoal) 14%, transparent);
+
+    /* === shadcn token mapping → J&J palette === */
+    --background: var(--paper-1);
+    --foreground: var(--charcoal);
+    --card: var(--white);
+    --card-foreground: var(--charcoal);
+    --popover: var(--white);
+    --popover-foreground: var(--charcoal);
+    --primary: var(--charcoal);
+    --primary-foreground: var(--white);
+    --secondary: var(--stone);
+    --secondary-foreground: var(--charcoal);
+    --muted: var(--paper-3);
+    /* --muted-foreground already set above via charcoal mix */
+    --accent: var(--paper-3);
+    --accent-foreground: var(--charcoal);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --border: var(--stone);
+    --input: var(--stone);
+    --ring: color-mix(in srgb, var(--charcoal) 30%, transparent);
+    --chart-1: var(--charcoal);
+    --chart-2: color-mix(in srgb, var(--charcoal) 70%, var(--paper-1));
+    --chart-3: color-mix(in srgb, var(--charcoal) 50%, var(--paper-1));
+    --chart-4: color-mix(in srgb, var(--charcoal) 30%, var(--paper-1));
+    --chart-5: var(--stone);
+    --radius: 0.3125rem; /* 5px — J&J standard */
+    --sidebar: var(--paper-2);
+    --sidebar-foreground: var(--charcoal);
+    --sidebar-primary: var(--charcoal);
+    --sidebar-primary-foreground: var(--white);
+    --sidebar-accent: var(--paper-3);
+    --sidebar-accent-foreground: var(--charcoal);
+    --sidebar-border: var(--stone);
+    --sidebar-ring: color-mix(in srgb, var(--charcoal) 30%, transparent);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* Light-only by intent; J&J does not ship a dark theme.
+       These exist only so any stray .dark class doesn't break. */
+    --background: var(--paper-1);
+    --foreground: var(--charcoal);
+    --card: var(--white);
+    --card-foreground: var(--charcoal);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    body {
+        @apply bg-background text-foreground antialiased;
+        /* J&J: no grain / noise overlay on marketing surfaces */
     }
-  html {
-    @apply font-sans;
+    html {
+        @apply font-sans;
+        font-feature-settings: "ss01", "cv01";
+    }
+    /* J&J: weight 400 everywhere, hierarchy through size/color/spacing */
+    h1, h2, h3, h4, h5, h6, strong, b {
+        font-weight: 400;
+    }
+    /* Smooth scroll only when motion is allowed */
+    @media (prefers-reduced-motion: no-preference) {
+        html { scroll-behavior: smooth; }
+    }
+}
+
+/* ---------- J&J utility classes ---------- */
+@layer components {
+    /* Inset / panel surfaces (paper-3, no border) */
+    .surface-panel {
+        background-color: var(--paper-3);
+        border-radius: var(--radius);
+    }
+    .surface-inset {
+        background-color: var(--paper-3);
+        border-radius: var(--radius);
+    }
+
+    /* Editorial tag — stone fill, charcoal text, 11px */
+    .editorial-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--stone);
+        color: var(--charcoal);
+        font-size: 11px;
+        line-height: 1.2;
+        padding: 2px 6px;
+        border-radius: var(--radius);
+        letter-spacing: 0;
+    }
+
+    /* Meta label — 12px muted, sentence case */
+    .meta-label {
+        font-size: 12px;
+        line-height: 1.35;
+        color: var(--muted-foreground);
+        letter-spacing: 0;
+    }
+
+    /* Prose link — charcoal underline, focus-visible ring */
+    .prose-link {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: var(--charcoal);
+        text-underline-offset: 2px;
+        text-decoration-thickness: 1px;
+    }
+    .prose-link:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--charcoal) 30%, transparent);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    /* Vertical rhythm for long-form blocks */
+    .prose-stack > * + * {
+        margin-top: 1.5rem;
+    }
+    @media (min-width: 768px) {
+        .prose-stack > * + * {
+            margin-top: 2.25rem;
+        }
+    }
+
+    /* Hairline rule */
+    .hairline {
+        height: 1px;
+        background-color: var(--stone);
     }
 }

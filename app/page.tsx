@@ -670,7 +670,7 @@ function SettingsContent({
       <Separator />
 
       <div className="rounded-md bg-muted p-3">
-        <p className="font-medium">Estimated cost</p>
+        <p className="text-foreground">Estimated cost</p>
         <p className="text-sm text-muted-foreground">
           $0.08 per image at 1K
           {settings.resolution === "2K" && " ($0.12 at 2K)"}
@@ -1220,17 +1220,18 @@ function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 pb-20 sm:px-6 sm:py-8 lg:px-8 lg:pb-8">
-      {/* Header */}
-      <div className="mb-6 flex items-start justify-between sm:mb-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Profile Picture Generator
+      {/* Header — editorial: meta line, title, subtitle */}
+      <div className="mb-8 flex items-end justify-between gap-4 sm:mb-12">
+        <div className="space-y-2">
+          <span className="meta-label">Profile picture generator · v1</span>
+          <h1 className="text-3xl tracking-tight text-foreground sm:text-4xl">
+            Profile pictures that look like real photos.
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-            Generate realistic AI profile photos using fal.ai
+          <p className="text-[15px] text-body sm:text-base">
+            Realistic AI portraits via fal.ai — bring your own API key.
           </p>
         </div>
-        {/* Mobile settings button (top right) */}
+        {/* Mobile settings button */}
         <Button
           variant="outline"
           size="sm"
@@ -1343,22 +1344,22 @@ function Home() {
                 <TabsContent value="options" className="space-y-4">
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Mode</Label>
+                      <span className="meta-label">Mode</span>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => setMode("profile")}
                           aria-pressed={mode === "profile"}
-                          className={`flex flex-col gap-1 rounded-md border p-3 text-left transition-colors ${
+                          className={`flex min-h-[60px] flex-col gap-1.5 rounded-[5px] p-3 text-left transition-colors touch-manipulation ${
                             mode === "profile"
-                              ? "border-foreground/70 bg-foreground/[0.03]"
-                              : "border-border hover:border-foreground/30 hover:bg-foreground/[0.015]"
+                              ? "bg-paper-3"
+                              : "bg-card fine-hover:hover:bg-paper-3/60"
                           }`}
                         >
-                          <span className="text-sm font-medium leading-none">
-                            Profile Picture
+                          <span className="text-[15px] leading-none text-foreground">
+                            Profile picture
                           </span>
-                          <span className="text-xs leading-snug text-muted-foreground">
+                          <span className="text-xs leading-snug text-body-muted">
                             Flattering light, warm expressions — the photo you&apos;d actually post.
                           </span>
                         </button>
@@ -1366,16 +1367,16 @@ function Home() {
                           type="button"
                           onClick={() => setMode("candid")}
                           aria-pressed={mode === "candid"}
-                          className={`flex flex-col gap-1 rounded-md border p-3 text-left transition-colors ${
+                          className={`flex min-h-[60px] flex-col gap-1.5 rounded-[5px] p-3 text-left transition-colors touch-manipulation ${
                             mode === "candid"
-                              ? "border-foreground/70 bg-foreground/[0.03]"
-                              : "border-border hover:border-foreground/30 hover:bg-foreground/[0.015]"
+                              ? "bg-paper-3"
+                              : "bg-card fine-hover:hover:bg-paper-3/60"
                           }`}
                         >
-                          <span className="text-sm font-medium leading-none">
-                            Authentic Candid
+                          <span className="text-[15px] leading-none text-foreground">
+                            Authentic candid
                           </span>
-                          <span className="text-xs leading-snug text-muted-foreground">
+                          <span className="text-xs leading-snug text-body-muted">
                             Harsh light, tired faces, mundane spots — full documentary feel.
                           </span>
                         </button>
@@ -1383,7 +1384,7 @@ function Home() {
                     </div>
                     <div className="rounded-md border p-3 space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium">Age range</Label>
+                        <span className="meta-label">Age range</span>
                         <span className="text-xs text-muted-foreground tabular-nums">
                           {ageRange[0]} – {ageRange[1]}
                         </span>
@@ -1399,10 +1400,8 @@ function Home() {
                         }
                       />
                     </div>
-                    <Label className="text-sm font-medium">
-                      Photography Parameters
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
+                    <span className="meta-label pt-2">Photography parameters</span>
+                    <p className="text-xs text-body-muted">
                       Control which traits are included in randomly generated prompts.
                       {" "}
                       {(() => {
@@ -1446,10 +1445,10 @@ function Home() {
                               }}
                             >
                               <div className="min-w-0">
-                                <span className="text-sm font-medium">
+                                <span className="text-sm text-foreground">
                                   {label}
                                 </span>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="text-xs text-body-muted truncate">
                                   {desc}
                                 </p>
                               </div>
@@ -1525,7 +1524,7 @@ function Home() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>
+                    <span className="tabular-nums">
                       Generating {progress.current} / {progress.total}
                     </span>
                     <Button
@@ -1553,8 +1552,8 @@ function Home() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold sm:text-xl">
-                    Generated Images
+                  <h2 className="text-xl tracking-tight text-foreground sm:text-2xl">
+                    Generated images
                   </h2>
                   <Badge variant="secondary">{doneCount} done</Badge>
                   {errorCount > 0 && (
@@ -1646,7 +1645,7 @@ function Home() {
                   return (
                     <div
                       key={image.id}
-                      className={`group relative overflow-hidden rounded-lg border bg-muted transition-all ${
+                      className={`group relative overflow-hidden rounded-[5px] bg-paper-3 motion-safe:transition-[box-shadow] duration-150 ease-out ${
                         selectMode && isDone ? "cursor-pointer" : ""
                       } ${
                         isSelected
@@ -1715,7 +1714,8 @@ function Home() {
                                   e.stopPropagation();
                                   toggleSaveImage(image);
                                 }}
-                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm fine-hover:hover:bg-black/70 active:scale-95"
+                                aria-label={isImageSaved(image.id) ? "Unsave from library" : "Save to library"}
                                 title={isImageSaved(image.id) ? "Unsave" : "Save to library"}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill={isImageSaved(image.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1727,7 +1727,8 @@ function Home() {
                                   e.stopPropagation();
                                   regenerateOne(image.id);
                                 }}
-                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm fine-hover:hover:bg-black/70 active:scale-95"
+                                aria-label="Regenerate this image"
                                 title="Regenerate"
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1742,7 +1743,8 @@ function Home() {
                                   e.stopPropagation();
                                   deleteImage(image.id);
                                 }}
-                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-red-600/80 active:scale-95"
+                                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm fine-hover:hover:bg-red-600/80 active:scale-95"
+                                aria-label="Delete this image"
                                 title="Delete"
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1795,7 +1797,7 @@ function Home() {
                           </p>
                           <button
                             onClick={() => regenerateOne(image.id)}
-                            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
+                            className="inline-flex items-center gap-1 rounded-[5px] bg-stone px-2.5 py-1 text-xs text-charcoal transition-colors touch-manipulation fine-hover:hover:bg-[color-mix(in_srgb,var(--stone)_70%,var(--charcoal))] fine-hover:hover:text-white"
                           >
                             <RotateCwIcon className="size-3" aria-hidden />
                             Retry
@@ -1820,8 +1822,8 @@ function Home() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold sm:text-xl">
-                    Saved Library
+                  <h2 className="text-xl tracking-tight text-foreground sm:text-2xl">
+                    Saved library
                   </h2>
                   <Badge variant="secondary">{savedImages.length}</Badge>
                 </div>
@@ -1858,7 +1860,8 @@ function Home() {
                           e.stopPropagation();
                           downloadImage(image);
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-black/70 active:scale-95"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm fine-hover:hover:bg-black/70 active:scale-95"
+                        aria-label="Download saved image"
                         title="Download"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1872,7 +1875,8 @@ function Home() {
                           e.stopPropagation();
                           removeSavedImage(image.id);
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm hover:bg-red-600/80 active:scale-95"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/90 backdrop-blur-sm fine-hover:hover:bg-red-600/80 active:scale-95"
+                        aria-label="Remove from saved library"
                         title="Remove from saved"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2106,7 +2110,7 @@ function Home() {
             style={{ opacity: lightboxVisible ? 1 : 0 }}
           />
           <div
-            className="relative z-10 flex max-h-[90vh] max-w-[90vw] items-center gap-6 transition-all duration-200"
+            className="relative z-10 flex max-h-[90vh] max-w-[90vw] items-center gap-6 motion-safe:transition-[opacity,transform] duration-200 ease-out"
             style={{
               opacity: lightboxVisible ? 1 : 0,
               transform: lightboxVisible ? "scale(1)" : "scale(0.95)",
