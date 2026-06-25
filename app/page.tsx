@@ -1097,10 +1097,12 @@ function FillSlider({
         e.currentTarget.releasePointerCapture(e.pointerId);
       }}
       onKeyDown={onKeyDown}
-      className="relative flex h-10 w-full cursor-ew-resize touch-none items-center justify-between overflow-hidden rounded-[7px] bg-stone px-3 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group/fill relative flex h-10 w-full cursor-ew-resize touch-none items-center justify-between overflow-hidden rounded-[5px] bg-stone px-3 outline-none select-none transition-colors fine-hover:hover:bg-[color-mix(in_srgb,var(--stone)_88%,var(--charcoal))] focus-visible:ring-2 focus-visible:ring-ring"
     >
+      {/* No width transition: the fill pins to the cursor during a drag.
+          Keyboard/click steps are small enough to read as instant. */}
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 bg-[color-mix(in_srgb,var(--charcoal)_16%,var(--stone))] transition-[width] duration-75"
+        className="pointer-events-none absolute inset-y-0 left-0 bg-[color-mix(in_srgb,var(--charcoal)_16%,var(--stone))] transition-colors group-hover/fill:bg-[color-mix(in_srgb,var(--charcoal)_22%,var(--stone))]"
         style={{ width: `${Math.max(0, Math.min(100, fillPct))}%` }}
       />
       <span className="relative z-10 truncate pr-2 text-sm text-foreground">{label}</span>
@@ -1163,21 +1165,21 @@ function WeightControl({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
               onClick={() => onChange({ ...defaults })}
             >
               Reset
             </button>
             <button
               type="button"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
               onClick={() => onChange(Object.fromEntries(keys.map((k) => [k, 50])))}
             >
               All equal
             </button>
             <button
               type="button"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
               onClick={() => onChange(Object.fromEntries(keys.map((k) => [k, 0])))}
             >
               Clear all
@@ -1232,7 +1234,7 @@ function FrequencyControl({
         </span>
         <button
           type="button"
-          className="shrink-0 text-sm text-blue-600 hover:underline"
+          className="shrink-0 text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
           onClick={() => onChange({ ...defaults })}
         >
           Reset
@@ -1788,7 +1790,7 @@ function Home() {
       <div className="flex gap-2 mb-1">
         <button
           type="button"
-          className="text-xs text-blue-600 hover:underline"
+          className="text-xs text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
           onClick={() =>
             setAiParams((prev) => ({
               ...prev,
@@ -1800,7 +1802,7 @@ function Home() {
         </button>
         <button
           type="button"
-          className="text-xs text-blue-600 hover:underline"
+          className="text-xs text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
           onClick={() =>
             setAiParams((prev) => ({
               ...prev,
@@ -2627,7 +2629,7 @@ function Home() {
                 <div className="flex gap-3 mb-3">
                   <button
                     type="button"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
                     onClick={() =>
                       setAiParams((prev) => ({
                         ...prev,
@@ -2642,7 +2644,7 @@ function Home() {
                   </button>
                   <button
                     type="button"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
                     onClick={() =>
                       setAiParams((prev) => ({
                         ...prev,
@@ -2787,7 +2789,7 @@ function Home() {
             <img
               src={lightboxImage.imageUrl}
               alt={lightboxImage.prompt.slice(0, 80)}
-              className="max-h-[80vh] max-w-[60vw] rounded-lg object-contain shadow-2xl"
+              className="img-outline-ondark max-h-[80vh] max-w-[60vw] rounded-lg object-contain shadow-2xl"
             />
             <div className="flex max-w-sm flex-col gap-4">
               <p className="rounded-md bg-black/50 px-4 py-3 text-sm leading-relaxed text-white/90 backdrop-blur-sm">

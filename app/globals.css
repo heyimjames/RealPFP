@@ -136,6 +136,13 @@
     h1, h2, h3, h4, h5, h6, strong, b {
         font-weight: 400;
     }
+    /* Balanced headings avoid lone last-line words; pretty body avoids orphans */
+    h1, h2, h3, h4, h5, h6 {
+        text-wrap: balance;
+    }
+    p {
+        text-wrap: pretty;
+    }
     /* Smooth scroll only when motion is allowed */
     @media (prefers-reduced-motion: no-preference) {
         html { scroll-behavior: smooth; }
@@ -203,5 +210,17 @@
     .hairline {
         height: 1px;
         background-color: var(--stone);
+    }
+
+    /* Subtle edge definition for images with no bordered container. Pure-black
+       inset so it never picks up a tint from the surface beneath it. */
+    .img-outline {
+        outline: 1px solid rgba(0, 0, 0, 0.1);
+        outline-offset: -1px;
+    }
+    /* On dark surfaces (lightbox) the same idea, but pure white. */
+    .img-outline-ondark {
+        outline: 1px solid rgba(255, 255, 255, 0.1);
+        outline-offset: -1px;
     }
 }
