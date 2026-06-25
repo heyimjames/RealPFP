@@ -91,12 +91,13 @@ const RANDOM_TRAITS = {
     "one eyebrow slightly raised, skeptical look",
     "concentrating expression, lips pressed together",
   ],
+  // Everyday/casual clothing — the base pool. Formal wear, big hoodies, etc.
+  // live in their own frequency-gated pools (see FORMAL_CLOTHING / HOODIES).
   clothing: [
-    "a navy crewneck sweater", "a charcoal suit jacket and white open-collar shirt",
+    "a navy crewneck sweater",
     "a vintage denim jacket with a fraying collar", "a light blue Oxford shirt",
     "a white linen blouse", "a dark green flannel shirt with the top button undone",
     "a mustard yellow turtleneck", "a fitted black turtleneck",
-    "a heather grey hoodie with the strings uneven",
     "a white button-down shirt with sleeves rolled to the elbows",
     "a cream cable-knit sweater", "a dark olive henley shirt",
     "a slightly wrinkled linen shirt", "a faded band t-shirt under an open flannel",
@@ -108,6 +109,8 @@ const RANDOM_TRAITS = {
     "a boxy short-sleeve cream t-shirt",
     "an oversized beige linen shirt, slightly creased",
     "wide-leg charcoal trousers with a soft grey crewneck tucked in",
+    "a chunky cable-knit roll-neck jumper",
+    "a crisp white shirt under a fine-gauge merino sweater",
   ],
   lighting: [
     "soft overcast light, no hard shadows",
@@ -153,6 +156,67 @@ const RANDOM_TRAITS = {
     "subway platform, tiled wall behind",
     "luxury hotel lobby with warm wood paneling and soft amber lamp light behind them",
     "gym entrance, glass door reflecting behind them",
+    "framed through a car window, soft reflections on the glass",
+    "in the passenger seat of a car, window light on the face",
+    "in an airport terminal, departure boards softly blurred behind",
+    "at an airport gate, large windows and a plane out of focus behind",
+    "at a conference, lanyards and banners blurred in the background",
+    "on a conference stage edge, stage lighting spill behind them",
+    "at a café table, a flat white and a folded newspaper in front",
+    "sitting on a low brick garden wall, hedge behind",
+    "perched on a stone harbour wall, water out of focus behind",
+  ],
+  // Geographic settings. Kept deliberately time- and weather-neutral so the
+  // Atmosphere axis stays in charge of light and sky — a location never says
+  // "sunlit" or "at dusk" itself. When the Location control is on, one of these
+  // replaces the generic setting above.
+  locations: [
+    "on a quiet street in Lisbon, pastel tiled buildings behind",
+    "in a Tokyo backstreet, neon signs blurred behind",
+    "on a New York City sidewalk, a yellow cab blurred behind",
+    "in a Paris café, a zinc bar behind",
+    "on a London street, a red double-decker bus blurred behind",
+    "in a Barcelona plaza, Gothic stonework behind",
+    "on an Amsterdam canal bridge, bikes blurred behind",
+    "in a Marrakech medina, warm ochre walls behind",
+    "on a Mexico City rooftop, the skyline behind",
+    "in a Seoul side street, hangul signage behind",
+    "on a Sydney coastal path, the harbour behind",
+    "in an Istanbul market, hanging lamps blurred behind",
+    "on a cobbled Rome street, a stone fountain behind",
+    "in a Berlin courtyard, soft graffiti out of focus behind",
+    "on a Rio beach boardwalk, palms behind",
+    "in a Mumbai street scene, colour and motion blurred behind",
+    "on a Scottish Highlands hillside, heather and stone behind",
+    "in a Copenhagen square, cyclists blurred behind",
+  ],
+  // How far the subject sits from the camera. Becomes the framing prefix and
+  // applies in both modes, so faces aren't all locked at the same crop.
+  shotDistances: [
+    "Extreme close-up, face fills the frame, cropped just above the brow and below the chin",
+    "Close-up portrait, head and the top of the shoulders",
+    "Head-and-shoulders portrait",
+    "Chest-up medium close-up",
+    "Waist-up medium shot, a little room around the subject",
+    "Three-quarter shot from the knees up, environment visible",
+    "Wider environmental shot, full upper body with space around them",
+  ],
+  // Pets the subject is holding / playing with — varied species, size, colour
+  // and breed. Added as an occasional extra clause (see the gate in
+  // generateRandomPrompt), not on every image.
+  companions: [
+    "holding a small ginger tabby cat against their chest",
+    "cradling a fluffy white kitten in both hands",
+    "a sleek black cat draped over one shoulder",
+    "a long-haired calico cat curled in the crook of their arm",
+    "playing with a golden retriever puppy on their lap",
+    "kneeling beside a large grey Weimaraner, a hand on its back",
+    "holding a tiny brown dachshund puppy up near their face",
+    "a fluffy tan corgi sitting in their lap, looking up",
+    "scratching the ears of a black Labrador beside them",
+    "holding a small grey French bulldog under one arm",
+    "a border collie leaning into them mid-laugh",
+    "holding a fluffy white Samoyed puppy close",
   ],
   filmStyles: [
     "natural film grain, Kodak Portra 400 tones",
@@ -207,6 +271,8 @@ const RANDOM_TRAITS = {
     "one hand tucked into a back pocket, the other relaxed",
     "lifting a coffee cup partway toward the mouth",
     "sleeves pushed up, hands clasped at the wrist",
+    "sitting on a wall with one knee drawn up, relaxed",
+    "perched on a wall, leaning back on both hands",
   ],
   depthsOfField: [
     "everything sharp like an iPhone photo, deep focus",
@@ -258,36 +324,6 @@ const RANDOM_TRAITS = {
     "peeling skin on the nose from sunburn",
     "sweat visible on the forehead",
   ],
-  accessories: [
-    "wire-frame glasses sitting slightly crooked",
-    "thick-rimmed glasses",
-    "small gold hoop earrings",
-    "a silver chain necklace tucked under the collar",
-    "a beat-up digital watch",
-    "no accessories",
-    "no accessories",
-    "no accessories",
-    "a baseball cap worn slightly back",
-    "a beanie pulled down to the eyebrows",
-    "reading glasses pushed up on top of the head",
-    "AirPods in, one ear only",
-    "a thin gold wedding band",
-    "stud earrings",
-    "a lanyard with an ID badge clipped to the shirt",
-    "sunglasses pushed up on the forehead",
-    "dark sunglasses on, lenses reflecting the surroundings",
-    "round tortoiseshell sunglasses worn",
-    "a vintage film camera slung around the neck on a leather strap",
-    "a 35mm camera held casually at chest level",
-    "over-ear headphones resting loose around the neck",
-    "wired earphones in, the cord trailing into a pocket",
-    "a hoodie tied loosely around the neck by the sleeves",
-    "a canvas tote bag strap visible over one shoulder",
-    "a leather crossbody bag strap across the chest",
-    "a knit scarf loose around the neck",
-    "a slim leather watch with a worn-in band",
-    "a single delicate chain bracelet",
-  ],
   photoImperfections: [
     "slightly off-center framing",
     "small lens flare in the corner",
@@ -305,7 +341,212 @@ const RANDOM_TRAITS = {
   ],
 };
 
+// Expressions that read as overtly happy. Suppressed when an atmosphere has
+// allowJoy: false — you don't grin through a thunderstorm.
+const JOYFUL_EXPRESSIONS = new Set<string>([
+  "warm smile showing teeth",
+  "slight closed-mouth smile",
+  "relaxed half-smile",
+  "big genuine laugh with eyes squeezed shut",
+  "gentle warm smile",
+  "easygoing grin",
+  "soft shy smile",
+  "eyes crinkled from laughing a moment ago",
+]);
+
+// Time of day + weather + sky, bundled so they can never contradict each other
+// (no "stormy golden hour"). Each entry also owns the matching `lighting`.
+//   profileSafe  — appears in Profile mode (only pleasant weather does).
+//   allowJoy     — joyful expressions allowed (false for dramatic weather).
+//   outdoor      — scene is outside (gates the Location axis).
+//   settingOverride — dramatic weather forces a sheltered backdrop so the
+//                     person isn't implausibly out in it.
+type Atmosphere = {
+  label: string;
+  phrase: string;
+  lighting: string;
+  profileSafe: boolean;
+  allowJoy: boolean;
+  outdoor: boolean;
+  settingOverride?: string;
+};
+
+const ATMOSPHERES: Atmosphere[] = [
+  // — Pleasant: available everywhere —
+  { label: "Golden hour", phrase: "golden hour, clear sky", lighting: "warm golden-hour sunlight from the side, soft and low", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Bright clear midday", phrase: "clear blue sky, midday", lighting: "bright midday sun, clear sky, crisp natural shadows", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Soft overcast", phrase: "soft overcast, mild", lighting: "soft overcast daylight, no hard shadows", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Fresh sunny morning", phrase: "clear sky, early morning", lighting: "bright clear morning light, fresh and cool", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Hazy late afternoon", phrase: "light haze, late afternoon", lighting: "warm late-afternoon sun going orange, faint haze", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Blue-hour dusk", phrase: "clear, just after sunset", lighting: "cool blue twilight just after sunset, soft and even", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Light snowfall", phrase: "gentle snowfall, calm", lighting: "soft flat light through gently falling snow", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Dappled tree shade", phrase: "sunny, under tree canopy", lighting: "dappled light filtering through tree canopy, uneven across the face", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Backlit sun", phrase: "clear, sun behind them", lighting: "backlit by the sun, a soft rim of light around the hair, face a touch underexposed", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Window light indoors", phrase: "daytime, by a window", lighting: "natural window light from the side, one side of the face softly darker", profileSafe: true, allowJoy: true, outdoor: false },
+  { label: "Sunlit indoors", phrase: "daytime, indoors", lighting: "soft daylight through a window, warm indoor tones, slightly uneven exposure", profileSafe: true, allowJoy: true, outdoor: false },
+  { label: "Warm lamplit evening", phrase: "evening, indoors", lighting: "warm lamp light indoors in the evening", profileSafe: true, allowJoy: true, outdoor: false },
+  // — Dramatic: Candid mode only, joy suppressed, sheltered backdrop —
+  { label: "Overcast drizzle — candid only", phrase: "grey, light drizzle", lighting: "flat grey light from a drizzly overcast sky", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "sheltering under an awning, light rain falling behind them" },
+  { label: "Heavy rain — candid only", phrase: "wet, heavy rain", lighting: "dim flat light, heavy rain streaking past", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "standing in a doorway out of the rain, wet street behind" },
+  { label: "Thunderstorm — candid only", phrase: "dark storm outside", lighting: "dark stormy light, heavy clouds, low and moody", profileSafe: false, allowJoy: false, outdoor: false, settingOverride: "indoors at a window, rain lashing the glass, storm outside" },
+  { label: "Thick fog — candid only", phrase: "thick fog, low visibility", lighting: "diffuse grey light in thick fog, very low contrast", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "on a foggy street, shapes dissolving into grey behind them" },
+  { label: "Cold winter dusk — candid only", phrase: "overcast, cold dusk", lighting: "cold dim blue-grey winter dusk light", profileSafe: false, allowJoy: false, outdoor: true },
+];
+
+// ---- Frequency-gated content pools ----
+// These used to live inside the flat clothing/accessory lists, which made
+// "special" looks appear far too often (a uniform pick over ~36 items gives
+// each ~3%, but with several suits in the list, formal wear hit ~20%). Pulling
+// them into dedicated pools lets each be injected at a realistic, independent
+// rate (see FREQUENCY_DEFAULTS), tunable per-option via the Appearance
+// frequency sliders.
+const FORMAL_CLOTHING = [
+  "a well-cut navy suit with a slim tie",
+  "a charcoal three-piece suit, top button done up",
+  "a black tuxedo with a satin bow tie",
+  "formal wedding attire, a fresh boutonnière on the lapel",
+  "a tailored beige linen suit, no tie, collar open",
+  "a charcoal suit jacket and a white open-collar shirt",
+];
+const HOODIE_CLOTHING = [
+  "a big thick oversized knit hoodie, drawstrings hanging loose",
+  "a heather grey hoodie with uneven strings",
+  "a heavyweight charcoal hoodie under a wool overcoat",
+];
+const BW_FILM = [
+  "black and white film, Kodak Tri-X 400 grain",
+  "classic monochrome, deep blacks and soft greys",
+  "high-contrast black and white, strong shadows",
+];
+const PHONE_POSES = [
+  "holding a phone to the ear, mid-call, half-smiling",
+  "glancing down at their phone, a faint smile",
+];
+const GLASSES = [
+  "wire-frame glasses sitting slightly crooked",
+  "thick-rimmed glasses",
+  "reading glasses pushed up on top of the head",
+  "round wire-frame glasses",
+  "bold acetate-frame glasses",
+  "thin rimless glasses",
+];
+const SUNGLASSES = [
+  "sunglasses pushed up on the forehead",
+  "dark sunglasses on, lenses reflecting the surroundings",
+  "round tortoiseshell sunglasses worn",
+  "aviator sunglasses pushed up into the hair",
+];
+const JEWELLERY = [
+  "small gold hoop earrings",
+  "a silver chain necklace tucked under the collar",
+  "a thin gold wedding band",
+  "stud earrings",
+  "a single delicate chain bracelet",
+  "a bold statement necklace catching the light",
+  "layered fine gold necklaces",
+  "a chunky signet ring on one finger",
+  "small diamond stud earrings",
+];
+const HATS = [
+  "a baseball cap worn slightly back",
+  "a beanie pulled down to the eyebrows",
+  "a felt fedora worn at a slight angle",
+  "a smart charcoal flat cap",
+  "a wide-brim wool hat",
+  "a structured wool beret",
+];
+const MISC_ACCESSORIES = [
+  "a beat-up digital watch",
+  "a slim leather watch with a worn-in band",
+  "AirPods in, one ear only",
+  "over-ear headphones resting loose around the neck",
+  "wired earphones in, the cord trailing into a pocket",
+  "a lanyard with an ID badge clipped to the shirt",
+  "a hoodie tied loosely around the neck by the sleeves",
+  "a canvas tote bag strap visible over one shoulder",
+  "a leather crossbody bag strap across the chest",
+  "a knit scarf loose around the neck",
+  "a vintage film camera slung around the neck on a leather strap",
+  "a 35mm camera held casually at chest level",
+];
+
+// Appearance frequencies (% of photos). Realistic, independent defaults — each
+// is its own probability, NOT a share of a whole. Surfaced as fill-sliders.
+type FreqKey =
+  | "namedLocation" | "glasses" | "sunglasses" | "jewellery" | "hats"
+  | "formalWear" | "bigHoodie" | "blackAndWhite" | "pets" | "onPhone"
+  | "miscAccessory";
+
+const FREQUENCY_DEFS: { key: FreqKey; label: string; desc: string }[] = [
+  { key: "namedLocation", label: "Named location / country", desc: "A real place (Lisbon, Tokyo…) instead of a generic backdrop" },
+  { key: "glasses", label: "Glasses", desc: "Prescription eyewear" },
+  { key: "jewellery", label: "Jewellery", desc: "Necklaces, earrings, rings, bracelets" },
+  { key: "miscAccessory", label: "Other accessories", desc: "Watches, headphones, bags, scarves" },
+  { key: "formalWear", label: "Formal wear", desc: "Suits, tuxedos, wedding attire" },
+  { key: "hats", label: "Hats", desc: "Caps, fedoras, beanies, berets" },
+  { key: "bigHoodie", label: "Big hoodies", desc: "Thick oversized hoodies" },
+  { key: "sunglasses", label: "Sunglasses", desc: "Worn or pushed up" },
+  { key: "blackAndWhite", label: "Black & white", desc: "Monochrome film look" },
+  { key: "pets", label: "Pets", desc: "Cats & dogs of varied breeds" },
+  { key: "onPhone", label: "On the phone", desc: "Mid-call or glancing at their phone" },
+];
+
+const FREQUENCY_DEFAULTS: Record<FreqKey, number> = {
+  namedLocation: 30,
+  glasses: 22,
+  jewellery: 30,
+  miscAccessory: 18,
+  formalWear: 8,
+  hats: 8,
+  bigHoodie: 6,
+  sunglasses: 5,
+  blackAndWhite: 6,
+  pets: 4,
+  onPhone: 4,
+};
+
+// Default ethnicity weights — a Western/English-internet skew (a starting point
+// the user re-dials with the sliders). Relative weights, normalised at pick.
+const ETHNICITY_DEFAULT_WEIGHTS: Record<string, number> = {
+  White: 55, Black: 13,
+  Hispanic: 5, Latino: 4, Latina: 3,
+  "East Asian": 3, "Southeast Asian": 2, Korean: 1, Japanese: 2, Chinese: 2, Filipino: 1,
+  "South Asian": 6,
+  "Middle Eastern": 2, Ethiopian: 1, "Indigenous American": 1, Biracial: 2,
+  "Pacific Islander": 1, "North African": 1, "Central Asian": 1, Caribbean: 1,
+};
+
+// Fully-populated default weights map (every ethnicity in RANDOM_TRAITS gets a
+// value), used for both the initial state and the control's Reset button.
+const DEFAULT_ETHNICITY_WEIGHTS_STATE: Record<string, number> = Object.fromEntries(
+  RANDOM_TRAITS.ethnicities.map((e) => [e, ETHNICITY_DEFAULT_WEIGHTS[e] ?? 1])
+);
+
 const AI_PARAM_DEFS = [
+  {
+    key: "location",
+    label: "Location / country",
+    desc: "Swap the generic backdrop for a real place — Lisbon, Tokyo, NYC…",
+    options: RANDOM_TRAITS.locations,
+  },
+  {
+    key: "atmosphere",
+    label: "Time of day & weather",
+    desc: "Coherent light + sky. Storms etc. are candid-only and never joyful.",
+    options: ATMOSPHERES.map((a) => a.label),
+  },
+  {
+    key: "shotDistance",
+    label: "Shot distance",
+    desc: "Extreme close-up through to a wider environmental shot",
+    options: RANDOM_TRAITS.shotDistances,
+  },
+  {
+    key: "companion",
+    label: "Pet breeds",
+    desc: "Which cats & dogs are eligible (how often is set under Appearance frequency).",
+    options: RANDOM_TRAITS.companions,
+  },
   {
     key: "bodyAngle",
     label: "Body Angle",
@@ -342,6 +583,25 @@ function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Weighted random selection. Each key's chance is its weight ÷ the sum of all
+// weights, so the numbers act as relative proportions, not absolutes — a 60/40
+// split and a 6/4 split pick identically. Entries with weight <= 0 are skipped.
+// Returns null when nothing is eligible (all weights 0), letting the caller
+// fall back to uniform random.
+function weightedPick(weights: Record<string, number>): string | null {
+  const entries = Object.entries(weights).filter(([, w]) => w > 0);
+  const total = entries.reduce((sum, [, w]) => sum + w, 0);
+  if (total <= 0) return null;
+  let r = Math.random() * total;
+  for (const [key, w] of entries) {
+    r -= w;
+    if (r < 0) return key;
+  }
+  // Float-rounding safety net: r should have crossed 0 above, but return the
+  // last eligible entry just in case it didn't.
+  return entries[entries.length - 1][0];
+}
+
 type GenerationMode = "profile" | "candid";
 
 // In Profile mode we filter out entries that produce real-but-unflattering
@@ -371,6 +631,12 @@ const PROFILE_MODE_EXCLUDES = {
     "moderate bokeh, 85mm f/2 lens",
     "slight background softness, shot on 50mm f/2.8",
   ],
+  // Profile pics live close to the face — drop the loosest crops so a PFP never
+  // ends up as a distant full-body shot. Candid keeps the full range.
+  shotDistances: [
+    "Three-quarter shot from the knees up, environment visible",
+    "Wider environmental shot, full upper body with space around them",
+  ],
 } as const;
 
 function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
@@ -383,22 +649,55 @@ function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   return list.filter((item) => !excludes.has(item));
 }
 
-function generateRandomPrompt(
-  params?: Record<string, ParamConfig>,
-  ageRange?: [number, number],
-  mode: GenerationMode = "profile"
-): string {
+type PromptOptions = {
+  params?: Record<string, ParamConfig>;
+  ageRange?: [number, number];
+  mode?: GenerationMode;
+  /** Relative weights per ethnicity; omitted/all-zero falls back to uniform. */
+  ethnicityWeights?: Record<string, number>;
+  /** Relative weights per gender ("woman"/"man"); same fallback. */
+  genderWeights?: Record<string, number>;
+  /** Per-content appearance rates as percentages (0–100). */
+  frequencies?: Partial<Record<FreqKey, number>>;
+};
+
+function generateRandomPrompt(opts: PromptOptions = {}): string {
+  const { params, ageRange, mode = "profile", ethnicityWeights, genderWeights, frequencies } = opts;
   const [ageMin, ageMax] = ageRange ?? [25, 45];
   const age = Math.floor(Math.random() * (ageMax - ageMin + 1)) + ageMin;
-  const ethnicity = randomPick(RANDOM_TRAITS.ethnicities);
-  const gender = randomPick(RANDOM_TRAITS.genders);
+
+  // Independent appearance-rate roll: each content type fires at its own % and
+  // does not compete with the others.
+  const freq = (k: FreqKey) => frequencies?.[k] ?? FREQUENCY_DEFAULTS[k];
+  const roll = (k: FreqKey) => Math.random() * 100 < freq(k);
+
+  // Ethnicity & gender honour a user-dialled distribution when present, else
+  // uniform random. weightedPick returns null if every weight is 0.
+  const ethnicity =
+    (ethnicityWeights && weightedPick(ethnicityWeights)) ??
+    randomPick(RANDOM_TRAITS.ethnicities);
+  const gender =
+    (genderWeights && weightedPick(genderWeights)) ??
+    randomPick(RANDOM_TRAITS.genders);
+
   const hairStyle = randomPick(RANDOM_TRAITS.hairStyles);
   const hairColor = randomPick(RANDOM_TRAITS.hairColors);
-  const expression = randomPick(applyModeFilter(RANDOM_TRAITS.expressions, "expressions", mode));
-  const clothing = randomPick(RANDOM_TRAITS.clothing);
-  const lighting = randomPick(applyModeFilter(RANDOM_TRAITS.lighting, "lighting", mode));
-  const setting = randomPick(applyModeFilter(RANDOM_TRAITS.settings, "settings", mode));
-  const filmStyle = randomPick(RANDOM_TRAITS.filmStyles);
+
+  // Clothing: formal wear and big hoodies are injected at their own rates;
+  // everything else is everyday casual.
+  const clothing = roll("formalWear")
+    ? randomPick(FORMAL_CLOTHING)
+    : roll("bigHoodie")
+      ? randomPick(HOODIE_CLOTHING)
+      : randomPick(RANDOM_TRAITS.clothing);
+
+  // Film look: occasional black & white, otherwise the colour grades. A B&W
+  // roll is a deliberate choice, so it forces the film clause to be expressed
+  // (see filmPart below) rather than being subject to the usual attach gate.
+  const isBlackAndWhite = roll("blackAndWhite");
+  const filmStyle = isBlackAndWhite
+    ? randomPick(BW_FILM)
+    : randomPick(RANDOM_TRAITS.filmStyles);
 
   // Controllable params: respect aiParams toggles + apply mode filter so
   // Profile mode can override even an explicit user selection of pro-bokeh.
@@ -414,23 +713,81 @@ function generateRandomPrompt(
     return randomPick(pool);
   };
 
+  // Atmosphere = time of day + weather + sky, bundled so they can't contradict.
+  // When on, it OWNS the lighting (and, for dramatic weather, the setting).
+  let atmosphere: Atmosphere | null = null;
+  if (!params || params.atmosphere?.enabled) {
+    // Profile mode only ever sees pleasant weather — no happy-in-a-storm.
+    let pool = ATMOSPHERES.filter((a) => mode === "candid" || a.profileSafe);
+    const selected = params?.atmosphere?.selected;
+    if (selected?.length) {
+      const sel = new Set(selected);
+      const narrowed = pool.filter((a) => sel.has(a.label));
+      if (narrowed.length) pool = narrowed;
+    }
+    if (pool.length) atmosphere = randomPick(pool);
+  }
+
+  // Lighting: atmosphere wins; otherwise the original independent pick.
+  const lighting = atmosphere
+    ? atmosphere.lighting
+    : randomPick(applyModeFilter(RANDOM_TRAITS.lighting, "lighting", mode));
+
+  // Expression: drop overtly joyful options when the weather forbids joy.
+  let expressionPool = applyModeFilter(RANDOM_TRAITS.expressions, "expressions", mode);
+  if (atmosphere && !atmosphere.allowJoy) {
+    const sober = expressionPool.filter((e) => !JOYFUL_EXPRESSIONS.has(e));
+    if (sober.length) expressionPool = sober;
+  }
+  const expression = randomPick(expressionPool);
+
+  // Setting precedence: dramatic-weather shelter > named location (at its own
+  // rate) > generic backdrop. The Location checkbox list still governs *which*
+  // countries are eligible; the "namedLocation" frequency governs *how often*.
+  const locationEnabled = !params || params.location?.enabled;
+  const locationSel = params?.location?.selected;
+  const locationPool = locationSel?.length
+    ? RANDOM_TRAITS.locations.filter((l) => locationSel.includes(l))
+    : RANDOM_TRAITS.locations;
+  let setting: string;
+  if (atmosphere?.settingOverride) {
+    setting = atmosphere.settingOverride;
+  } else if (locationEnabled && locationPool.length && roll("namedLocation")) {
+    setting = randomPick(locationPool);
+  } else {
+    setting = randomPick(applyModeFilter(RANDOM_TRAITS.settings, "settings", mode));
+  }
+
+  const shotDistance = pickControlled("shotDistance", RANDOM_TRAITS.shotDistances, "shotDistances");
   const bodyAngle = pickControlled("bodyAngle", RANDOM_TRAITS.bodyAngles);
-  const pose = pickControlled("pose", RANDOM_TRAITS.poses);
+  // Pose: occasionally on the phone (at its own rate), otherwise the usual pool.
+  const pose = roll("onPhone")
+    ? randomPick(PHONE_POSES)
+    : pickControlled("pose", RANDOM_TRAITS.poses);
   const dof = pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField, "depthsOfField");
   const candidness = pickControlled("candidness", RANDOM_TRAITS.candidnessLevels);
   const camera = pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
 
+  // Pets: at their own rate, and never on an extreme face-only crop where the
+  // animal couldn't be seen anyway.
+  const tooTightForPet = !!shotDistance?.startsWith("Extreme close-up");
+  const companion =
+    !tooTightForPet && roll("pets")
+      ? pickControlled("companion", RANDOM_TRAITS.companions)
+      : null;
+
   const skin = randomPick(RANDOM_TRAITS.skinDetails);
-  let accessory = randomPick(RANDOM_TRAITS.accessories);
-  // Lanyards skewed the output toward "corporate badge" looks — gate to ~25% pass.
-  if (accessory.includes("lanyard") && Math.random() > 0.25) {
-    accessory = "no accessories";
-  }
-  // Profile mode: real PFPs rarely have curated props. Gate accessories to ~50%
-  // when picked, so the final accessory rate drops from ~85% to ~45%.
-  if (mode === "profile" && accessory !== "no accessories" && Math.random() > 0.5) {
-    accessory = "no accessories";
-  }
+
+  // Accessories: independent rolls per category rather than one pick from a big
+  // list, so each kind appears at a realistic, separately-tunable rate. Glasses
+  // and sunglasses are mutually exclusive (can't wear both).
+  const accessoryClauses: string[] = [];
+  if (roll("glasses")) accessoryClauses.push(randomPick(GLASSES));
+  else if (roll("sunglasses")) accessoryClauses.push(randomPick(SUNGLASSES));
+  if (roll("jewellery")) accessoryClauses.push(randomPick(JEWELLERY));
+  if (roll("hats")) accessoryClauses.push(randomPick(HATS));
+  if (roll("miscAccessory")) accessoryClauses.push(randomPick(MISC_ACCESSORIES));
+
   const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
 
   // Randomly include optional details to break the formula.
@@ -439,28 +796,18 @@ function generateRandomPrompt(
   const skinThreshold = mode === "profile" ? 0.5 : 0.25;
   const imperfectionThreshold = mode === "profile" ? 0.75 : 0.45;
   const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
-  const accessoryPart = accessory !== "no accessories" ? `, ${accessory}` : "";
+  const accessoryPart = accessoryClauses.length ? `, ${accessoryClauses.join(", ")}` : "";
   const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
   // Film-style references heavily steer toward graded/cinematic looks — the
   // biggest single AI-tell after smooth skin. Profile mode uses them sparingly.
   const filmThreshold = mode === "profile" ? 0.65 : 0.15;
-  const filmPart = Math.random() > filmThreshold ? `, ${filmStyle}` : "";
+  const filmPart = isBlackAndWhite || Math.random() > filmThreshold ? `, ${filmStyle}` : "";
+  const companionPart = companion ? `. ${companion[0].toUpperCase()}${companion.slice(1)}` : "";
 
-  // Profile mode biases framing toward PFP-style crops, but mixes tight
-  // portrait phrasing with casual-snapshot phrasing so results don't all read
-  // as "studio headshot" (a major AI tell).
-  const profileFramings = [
-    "Head and shoulders portrait, tight crop on the face",
-    "Close-up portrait, face fills most of the frame",
-    "Shoulders-up framing, eyes in the upper third",
-    "Medium close-up, head and upper chest in frame",
-    "Casual phone snapshot, head and shoulders, slightly off-center",
-    "Quick candid taken by a friend, chest-up, not perfectly composed",
-    "Selfie-distance framing, face fills the frame, slightly off-balance",
-    "Phone-camera waist-up shot, framed casually",
-  ];
-  const framingPrefix =
-    mode === "profile" ? `${randomPick(profileFramings)}. ` : "";
+  // Shot distance drives framing in BOTH modes so subjects aren't all locked at
+  // the same crop. Profile mode's pool is pre-trimmed of the loosest crops
+  // (see PROFILE_MODE_EXCLUDES.shotDistances) to keep results PFP-appropriate.
+  const framingPrefix = shotDistance ? `${shotDistance}. ` : "";
 
   // Multiple template structures so prompts don't all read identically
   const templates = [
@@ -488,7 +835,7 @@ function generateRandomPrompt(
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
 
-  return (framingPrefix + randomPick(templates)() + profileAntiAI + noBorderSuffix)
+  return (framingPrefix + randomPick(templates)() + companionPart + profileAntiAI + noBorderSuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
@@ -682,6 +1029,233 @@ function SettingsContent({
   );
 }
 
+// Drag-to-fill scrubber: the whole row is the control. The label sits on the
+// left, the value on the right, and a bar fills from the left in proportion to
+// the value (Framer-style). Pointer-draggable and keyboard-accessible.
+function FillSlider({
+  label,
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
+  suffix = "",
+  hint,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  suffix?: string;
+  hint?: string;
+  onChange: (v: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const snap = (v: number) =>
+    Math.min(max, Math.max(min, Math.round(v / step) * step));
+  const fromClientX = (clientX: number) => {
+    const el = trackRef.current;
+    if (!el) return value;
+    const r = el.getBoundingClientRect();
+    return snap(min + ((clientX - r.left) / r.width) * (max - min));
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    let next = value;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") next = snap(value + step);
+    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = snap(value - step);
+    else if (e.key === "Home") next = min;
+    else if (e.key === "End") next = max;
+    else return;
+    e.preventDefault();
+    onChange(next);
+  };
+  const fillPct = ((value - min) / (max - min)) * 100;
+
+  return (
+    <div
+      ref={trackRef}
+      role="slider"
+      tabIndex={0}
+      aria-label={label}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      aria-valuetext={`${value}${suffix}`}
+      onPointerDown={(e) => {
+        dragging.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        onChange(fromClientX(e.clientX));
+      }}
+      onPointerMove={(e) => {
+        if (dragging.current) onChange(fromClientX(e.clientX));
+      }}
+      onPointerUp={(e) => {
+        dragging.current = false;
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }}
+      onKeyDown={onKeyDown}
+      className="relative flex h-10 w-full cursor-ew-resize touch-none items-center justify-between overflow-hidden rounded-[7px] bg-stone px-3 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 bg-[color-mix(in_srgb,var(--charcoal)_16%,var(--stone))] transition-[width] duration-75"
+        style={{ width: `${Math.max(0, Math.min(100, fillPct))}%` }}
+      />
+      <span className="relative z-10 truncate pr-2 text-sm text-foreground">{label}</span>
+      <span className="relative z-10 flex shrink-0 items-baseline gap-1.5 text-sm text-foreground tabular-nums">
+        {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+        <span>{value}{suffix}</span>
+      </span>
+    </div>
+  );
+}
+
+// Distribution control (ethnicity, gender): an enable toggle plus a FillSlider
+// per option. The slider value is a *relative weight*; the muted hint shows the
+// resulting normalised share so the user can read the real percentages.
+function WeightControl({
+  title,
+  description,
+  enabled,
+  onToggle,
+  weights,
+  defaults,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  enabled: boolean;
+  onToggle: (v: boolean) => void;
+  weights: Record<string, number>;
+  defaults: Record<string, number>;
+  onChange: (next: Record<string, number>) => void;
+}) {
+  const keys = Object.keys(weights);
+  const total = keys.reduce((s, k) => s + Math.max(0, weights[k]), 0);
+  const activeCount = keys.filter((k) => weights[k] > 0).length;
+  const pct = (k: string) =>
+    total > 0 && weights[k] > 0 ? Math.round((weights[k] / total) * 100) : 0;
+
+  return (
+    <div className="rounded-md border p-3 space-y-3">
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onToggle(e.target.checked)}
+          className="h-5 w-5 shrink-0 rounded border-input"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="text-sm text-foreground">{title}</span>
+          <span className="block text-xs text-body-muted">{description}</span>
+        </span>
+        {enabled && (
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            {activeCount}/{keys.length}
+          </span>
+        )}
+      </label>
+
+      {enabled && (
+        <>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline"
+              onClick={() => onChange({ ...defaults })}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline"
+              onClick={() => onChange(Object.fromEntries(keys.map((k) => [k, 50])))}
+            >
+              All equal
+            </button>
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline"
+              onClick={() => onChange(Object.fromEntries(keys.map((k) => [k, 0])))}
+            >
+              Clear all
+            </button>
+            {total === 0 && (
+              <span className="ml-auto text-xs text-muted-foreground">
+                All zero → uniform
+              </span>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            {keys.map((k) => (
+              <FillSlider
+                key={k}
+                label={k}
+                value={weights[k]}
+                min={0}
+                max={100}
+                step={1}
+                hint={total > 0 ? `${pct(k)}%` : undefined}
+                onChange={(v) => onChange({ ...weights, [k]: v })}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Appearance-frequency control: a FillSlider per content type, each an
+// independent 0–100% chance with a realistic default.
+function FrequencyControl({
+  defs,
+  values,
+  defaults,
+  onChange,
+}: {
+  defs: { key: FreqKey; label: string; desc: string }[];
+  values: Record<FreqKey, number>;
+  defaults: Record<FreqKey, number>;
+  onChange: (next: Record<FreqKey, number>) => void;
+}) {
+  return (
+    <div className="rounded-md border p-3 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0">
+          <span className="text-sm text-foreground">Appearance frequency</span>
+          <span className="block text-xs text-body-muted">
+            How often each appears, as a % of photos. Drag to taste.
+          </span>
+        </span>
+        <button
+          type="button"
+          className="shrink-0 text-sm text-blue-600 hover:underline"
+          onClick={() => onChange({ ...defaults })}
+        >
+          Reset
+        </button>
+      </div>
+      <div className="space-y-1.5">
+        {defs.map(({ key, label }) => (
+          <FillSlider
+            key={key}
+            label={label}
+            value={values[key]}
+            min={0}
+            max={100}
+            step={1}
+            suffix="%"
+            onChange={(v) => onChange({ ...values, [key]: v })}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main component ----------
 function Home() {
   const isMobile = useIsMobile();
@@ -707,11 +1281,31 @@ function Home() {
 
   // AI Prompts tab state
   const [aiParams, setAiParams] = useState<Record<string, ParamConfig>>({
+    location: { enabled: true, selected: [...RANDOM_TRAITS.locations] },
+    atmosphere: { enabled: true, selected: ATMOSPHERES.map((a) => a.label) },
+    shotDistance: { enabled: true, selected: [...RANDOM_TRAITS.shotDistances] },
+    companion: { enabled: true, selected: [...RANDOM_TRAITS.companions] },
     bodyAngle: { enabled: true, selected: [...RANDOM_TRAITS.bodyAngles] },
     pose: { enabled: true, selected: [...RANDOM_TRAITS.poses] },
     depthOfField: { enabled: true, selected: [...RANDOM_TRAITS.depthsOfField] },
     candidness: { enabled: true, selected: [...RANDOM_TRAITS.candidnessLevels] },
     cameraType: { enabled: true, selected: [...RANDOM_TRAITS.cameraTypes] },
+  });
+  // Ethnicity distribution defaults to a realistic Western/internet skew and is
+  // on by default; gender defaults to an even 50/50. Both are re-dialled with
+  // the fill-sliders, or toggled off for a flat uniform random mix.
+  const [ethnicityEnabled, setEthnicityEnabled] = useState(true);
+  const [ethnicityWeights, setEthnicityWeights] = useState<Record<string, number>>(
+    () => ({ ...DEFAULT_ETHNICITY_WEIGHTS_STATE })
+  );
+  const [genderEnabled, setGenderEnabled] = useState(false);
+  const [genderWeights, setGenderWeights] = useState<Record<string, number>>({
+    woman: 50,
+    man: 50,
+  });
+  // Appearance frequencies (% per content type) — always applied; realistic defaults.
+  const [frequencies, setFrequencies] = useState<Record<FreqKey, number>>({
+    ...FREQUENCY_DEFAULTS,
   });
   const [ageRange, setAgeRange] = useState<[number, number]>([25, 45]);
   const [mode, setMode] = useState<GenerationMode>("profile");
@@ -930,7 +1524,16 @@ function Home() {
 
   const handleGenerate = () => {
     const count = Math.max(1, Math.min(50, generateCount));
-    const prompts = Array.from({ length: count }, () => generateRandomPrompt(aiParams, ageRange, mode));
+    const prompts = Array.from({ length: count }, () =>
+      generateRandomPrompt({
+        params: aiParams,
+        ageRange,
+        mode,
+        ethnicityWeights: ethnicityEnabled ? ethnicityWeights : undefined,
+        genderWeights: genderEnabled ? genderWeights : undefined,
+        frequencies,
+      })
+    );
     generateImages(prompts);
   };
 
@@ -1080,7 +1683,14 @@ function Home() {
     if (regeneratingRef.current.has(id)) return;
     regeneratingRef.current.add(id);
 
-    const newPrompt = generateRandomPrompt(aiParams, ageRange, mode);
+    const newPrompt = generateRandomPrompt({
+      params: aiParams,
+      ageRange,
+      mode,
+      ethnicityWeights: ethnicityEnabled ? ethnicityWeights : undefined,
+      genderWeights: genderEnabled ? genderWeights : undefined,
+      frequencies,
+    });
 
     setImages((prev) =>
       prev.map((img) =>
@@ -1399,6 +2009,30 @@ function Home() {
                         }
                       />
                     </div>
+                    <WeightControl
+                      title="Ethnicity distribution"
+                      description="Drag each share; set to 0 to exclude. Off = even random mix."
+                      enabled={ethnicityEnabled}
+                      onToggle={setEthnicityEnabled}
+                      weights={ethnicityWeights}
+                      defaults={DEFAULT_ETHNICITY_WEIGHTS_STATE}
+                      onChange={setEthnicityWeights}
+                    />
+                    <WeightControl
+                      title="Gender distribution"
+                      description="Off = even 50/50. On = set the balance of women and men."
+                      enabled={genderEnabled}
+                      onToggle={setGenderEnabled}
+                      weights={genderWeights}
+                      defaults={{ woman: 50, man: 50 }}
+                      onChange={setGenderWeights}
+                    />
+                    <FrequencyControl
+                      defs={FREQUENCY_DEFS}
+                      values={frequencies}
+                      defaults={FREQUENCY_DEFAULTS}
+                      onChange={setFrequencies}
+                    />
                     <span className="meta-label pt-2">Photography parameters</span>
                     <p className="text-xs text-body-muted">
                       Control which traits are included in randomly generated prompts.
