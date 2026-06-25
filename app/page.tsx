@@ -749,6 +749,21 @@ const ASPIRATIONAL_MISC = [
   "a fine knit scarf draped at the neck",
   "over-ear headphones resting loose around the neck",
 ];
+// Options that read as awkward, fidgety, or unposed-documentary — fine for
+// Profile/Candid realism, but they undercut a polished Aspirational portrait.
+// Filtered from the relevant pools only when mode === "aspirational".
+const ASPIRATIONAL_POOL_EXCLUDES: Record<string, readonly string[]> = {
+  pose: [
+    "looking down at something in their hands",
+    "arms at their sides, slightly awkward",
+    "adjusting their glasses with one hand",
+  ],
+  candidness: [
+    "reacting to something off-camera with genuine surprise",
+    "candid street photography style, unaware of photographer",
+    "glancing over shoulder as if just noticed the camera",
+  ],
+};
 
 function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   list: readonly string[],
@@ -832,6 +847,12 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
     if (params && !params[key]?.enabled) return null;
     let pool = params?.[key]?.selected?.length ? [...params[key].selected] : [...defaults];
     if (modeCategory) pool = applyModeFilter(pool, modeCategory, mode);
+    // Aspirational drops the awkward/documentary options from pose & candidness.
+    if (mode === "aspirational" && ASPIRATIONAL_POOL_EXCLUDES[key]) {
+      const ex = new Set(ASPIRATIONAL_POOL_EXCLUDES[key]);
+      const filtered = pool.filter((p) => !ex.has(p));
+      if (filtered.length) pool = filtered;
+    }
     if (!pool.length) pool = [...defaults];
     return randomPick(pool);
   };
