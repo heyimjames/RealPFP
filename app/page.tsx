@@ -585,6 +585,18 @@ function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Combine a hair colour with a hair style into a grammatical phrase. Naive
+// concatenation broke on two fronts: "dark brown a bald head" (a bald head has
+// no colour) and "dark brown a pixie cut" (the article landed before the
+// colour). This inserts the colour after any leading article, and drops it
+// entirely for bald/shaved styles.
+function hairPhrase(color: string, style: string): string {
+  if (/\b(bald|shaved)\b/i.test(style)) return style; // "a bald head" — no colour
+  const m = style.match(/^(an?|the)\s+(.*)$/i);
+  if (m) return `${m[1]} ${color} ${m[2]}`; // "a" + colour + "pixie cut"
+  return `${color} ${style}`; // "dark brown short hair"
+}
+
 // Weighted random selection. Each key's chance is its weight ÷ the sum of all
 // weights, so the numbers act as relative proportions, not absolutes — a 60/40
 // split and a 6/4 split pick identically. Entries with weight <= 0 are skipped.
@@ -692,6 +704,17 @@ const ASPIRATIONAL_SKIN = [
   "smooth, well-rested skin with a subtle natural glow",
   "lightly sun-kissed skin",
 ];
+// Subtle authenticity touches for Aspirational. A flawless, perfectly clean
+// frame reads as stock/AI; these keep it a believable real photograph WITHOUT
+// being unflattering — natural, not flaws.
+const ASPIRATIONAL_REALISM = [
+  "a few natural flyaway hairs catching the light",
+  "a genuine catchlight in the eyes",
+  "slightly off-center, naturally composed framing",
+  "a relaxed, candid micro-expression",
+  "soft natural shadows, not studio-perfect",
+  "fine natural skin texture visible in the light",
+];
 
 function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   list: readonly string[],
@@ -741,6 +764,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
 
   const hairStyle = randomPick(RANDOM_TRAITS.hairStyles);
   const hairColor = randomPick(RANDOM_TRAITS.hairColors);
+  const hair = hairPhrase(hairColor, hairStyle);
 
   // Clothing: formal wear and big hoodies are injected at their own rates;
   // everything else is everyday casual.
@@ -875,14 +899,20 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   if (roll("hats")) accessoryClauses.push(randomPick(HATS));
   if (roll("miscAccessory")) accessoryClauses.push(randomPick(MISC_ACCESSORIES));
 
-  const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
+  // Aspirational uses subtle authenticity touches (flyaway hair, real
+  // catchlight) instead of the generic flaw list — they keep it a believable
+  // real photo without being unflattering.
+  const imperfection =
+    mode === "aspirational"
+      ? randomPick(ASPIRATIONAL_REALISM)
+      : randomPick(RANDOM_TRAITS.photoImperfections);
 
   // Randomly include optional details to break the formula. Higher threshold =
-  // rarer. Aspirational dials skin notes and photo imperfections way down (and
-  // the skin notes it does show are flattering); Profile is moderate; Candid
-  // keeps the original gritty-real rates.
+  // rarer. Aspirational keeps flattering skin notes rare, but applies its
+  // authenticity touches fairly often (~35%) so polished never tips into glossy
+  // stock/AI. Profile is moderate; Candid keeps the original gritty-real rates.
   const skinThreshold = mode === "aspirational" ? 0.85 : mode === "profile" ? 0.5 : 0.25;
-  const imperfectionThreshold = mode === "aspirational" ? 0.97 : mode === "profile" ? 0.75 : 0.45;
+  const imperfectionThreshold = mode === "aspirational" ? 0.65 : mode === "profile" ? 0.75 : 0.45;
   const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
   const accessoryPart = accessoryClauses.length ? `, ${accessoryClauses.join(", ")}` : "";
   const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
@@ -902,16 +932,16 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const templates = [
     // Scene-first: leads with where, then who
     () =>
-      `${setting}, ${lighting}. A ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${pose ? `, ${pose}` : ""}, wearing ${clothing}${accessoryPart}. ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${[dof, candidness].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
+      `${setting}, ${lighting}. A ${age}-year-old ${ethnicity} ${gender} with ${hair}${skinPart}${pose ? `, ${pose}` : ""}, wearing ${clothing}${accessoryPart}. ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${[dof, candidness].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
     // Action-first: leads with what the person is doing
     () =>
-      `A ${age}-year-old ${ethnicity} ${gender}${pose ? ` ${pose}` : ""}${candidness ? `, ${candidness}` : ""}. ${hairColor} ${hairStyle}, wearing ${clothing}${accessoryPart}. ${expression}${skinPart}. ${setting}, ${lighting}. ${[bodyAngle, dof].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
+      `A ${age}-year-old ${ethnicity} ${gender}${pose ? ` ${pose}` : ""}${candidness ? `, ${candidness}` : ""}. ${hair}, wearing ${clothing}${accessoryPart}. ${expression}${skinPart}. ${setting}, ${lighting}. ${[bodyAngle, dof].filter(Boolean).join(", ")}${filmPart}${camera ? `. ${camera}` : ""}${imperfectionPart}`,
     // Camera-first: leads with the technical look
     () =>
-      `${camera ? `${camera}. ` : ""}${age}-year-old ${ethnicity} ${gender}, ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${hairColor} ${hairStyle}${skinPart}, wearing ${clothing}${accessoryPart}. ${[pose, setting].filter(Boolean).join(", ")}. ${lighting}${dof ? `, ${dof}` : ""}. ${candidness ?? ""}${filmPart}${imperfectionPart}`,
+      `${camera ? `${camera}. ` : ""}${age}-year-old ${ethnicity} ${gender}, ${expression}${bodyAngle ? `, ${bodyAngle}` : ""}. ${hair}${skinPart}, wearing ${clothing}${accessoryPart}. ${[pose, setting].filter(Boolean).join(", ")}. ${lighting}${dof ? `, ${dof}` : ""}. ${candidness ?? ""}${filmPart}${imperfectionPart}`,
     // Descriptive: reads more like a caption
     () =>
-      `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}${pose ? `, ${pose}` : ""}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${[bodyAngle, dof, candidness, camera].filter(Boolean).join(", ")}${filmPart}${imperfectionPart}`,
+      `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hair}${skinPart}${accessoryPart}${pose ? `, ${pose}` : ""}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${[bodyAngle, dof, candidness, camera].filter(Boolean).join(", ")}${filmPart}${imperfectionPart}`,
   ];
 
   // Mode-specific quality suffix. Order matters: skin/exposure language goes
@@ -926,7 +956,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
     // waxy, over-smoothed AI look while asking for a flattering light retouch,
     // so it reads as a great real photo rather than an obvious AI render.
     qualitySuffix =
-      ". Polished, aspirational, editorial-quality portrait — the kind of photo you'd be proud to use professionally. Healthy, even, radiant skin with a subtle, tasteful retouch as if lightly beauty-filtered: smooth and flattering, yet unmistakably real skin with natural fine texture and pores still visible up close — not plastic, waxy, over-airbrushed, or obviously AI-smoothed. Flattering, professional, well-controlled soft lighting that gently shapes the face. Confident, composed, attractive and put-together. Clean, intentional composition with a flattering shallow depth of field that softly separates the subject from the background. Looks like a genuine high-end photograph by a skilled portrait photographer — crisp, real, and three-dimensional, not a casual snapshot and not AI-generated";
+      ". A real, authentic photograph of a real person — genuinely photographed on a real camera in a real place, candid and believable, absolutely NOT a 3D render, not CGI, not a glossy stock photo, not AI-generated. Polished, aspirational, editorial-quality — the kind of photo you'd be proud to use professionally. Healthy, even, radiant skin with a subtle, tasteful retouch as if lightly beauty-filtered: smooth and flattering, yet unmistakably real human skin with natural pores, fine texture, and tiny real-world irregularities still visible up close — never plastic, waxy, over-airbrushed, or AI-smooth. Flattering, professional, well-controlled soft lighting that gently shapes the face. Confident, composed, attractive and put-together. Clean, intentional composition with a flattering shallow depth of field that softly separates the subject from the background. The overall feel is a high-end real photograph by a skilled portrait photographer — crisp, dimensional, and authentically photographic";
   }
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
