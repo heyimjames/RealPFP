@@ -361,6 +361,7 @@ const JOYFUL_EXPRESSIONS = new Set<string>([
 //   outdoor      — scene is outside (gates the Location axis).
 //   settingOverride — dramatic weather forces a sheltered backdrop so the
 //                     person isn't implausibly out in it.
+//   aspFavored   — the most flattering light; Aspirational mode biases to these.
 type Atmosphere = {
   label: string;
   phrase: string;
@@ -369,22 +370,23 @@ type Atmosphere = {
   allowJoy: boolean;
   outdoor: boolean;
   settingOverride?: string;
+  aspFavored?: boolean;
 };
 
 const ATMOSPHERES: Atmosphere[] = [
   // — Pleasant: available everywhere —
-  { label: "Golden hour", phrase: "golden hour, clear sky", lighting: "warm golden-hour sunlight from the side, soft and low", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Golden hour", phrase: "golden hour, clear sky", lighting: "warm golden-hour sunlight from the side, soft and low", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
   { label: "Bright clear midday", phrase: "clear blue sky, midday", lighting: "bright midday sun, clear sky, crisp natural shadows", profileSafe: true, allowJoy: true, outdoor: true },
-  { label: "Soft overcast", phrase: "soft overcast, mild", lighting: "soft overcast daylight, no hard shadows", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Soft overcast", phrase: "soft overcast, mild", lighting: "soft overcast daylight, no hard shadows", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
   { label: "Fresh sunny morning", phrase: "clear sky, early morning", lighting: "bright clear morning light, fresh and cool", profileSafe: true, allowJoy: true, outdoor: true },
-  { label: "Hazy late afternoon", phrase: "light haze, late afternoon", lighting: "warm late-afternoon sun going orange, faint haze", profileSafe: true, allowJoy: true, outdoor: true },
-  { label: "Blue-hour dusk", phrase: "clear, just after sunset", lighting: "cool blue twilight just after sunset, soft and even", profileSafe: true, allowJoy: true, outdoor: true },
+  { label: "Hazy late afternoon", phrase: "light haze, late afternoon", lighting: "warm late-afternoon sun going orange, faint haze", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
+  { label: "Blue-hour dusk", phrase: "clear, just after sunset", lighting: "cool blue twilight just after sunset, soft and even", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
   { label: "Light snowfall", phrase: "gentle snowfall, calm", lighting: "soft flat light through gently falling snow", profileSafe: true, allowJoy: true, outdoor: true },
   { label: "Dappled tree shade", phrase: "sunny, under tree canopy", lighting: "dappled light filtering through tree canopy, uneven across the face", profileSafe: true, allowJoy: true, outdoor: true },
-  { label: "Backlit sun", phrase: "clear, sun behind them", lighting: "backlit by the sun, a soft rim of light around the hair, face a touch underexposed", profileSafe: true, allowJoy: true, outdoor: true },
-  { label: "Window light indoors", phrase: "daytime, by a window", lighting: "natural window light from the side, one side of the face softly darker", profileSafe: true, allowJoy: true, outdoor: false },
+  { label: "Backlit sun", phrase: "clear, sun behind them", lighting: "backlit by the sun, a soft rim of light around the hair, face a touch underexposed", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
+  { label: "Window light indoors", phrase: "daytime, by a window", lighting: "natural window light from the side, one side of the face softly darker", profileSafe: true, allowJoy: true, outdoor: false, aspFavored: true },
   { label: "Sunlit indoors", phrase: "daytime, indoors", lighting: "soft daylight through a window, warm indoor tones, slightly uneven exposure", profileSafe: true, allowJoy: true, outdoor: false },
-  { label: "Warm lamplit evening", phrase: "evening, indoors", lighting: "warm lamp light indoors in the evening", profileSafe: true, allowJoy: true, outdoor: false },
+  { label: "Warm lamplit evening", phrase: "evening, indoors", lighting: "warm lamp light indoors in the evening", profileSafe: true, allowJoy: true, outdoor: false, aspFavored: true },
   // — Dramatic: Candid mode only, joy suppressed, sheltered backdrop —
   { label: "Overcast drizzle — candid only", phrase: "grey, light drizzle", lighting: "flat grey light from a drizzly overcast sky", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "sheltering under an awning, light rain falling behind them" },
   { label: "Heavy rain — candid only", phrase: "wet, heavy rain", lighting: "dim flat light, heavy rain streaking past", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "standing in a doorway out of the rain, wet street behind" },
@@ -602,11 +604,16 @@ function weightedPick(weights: Record<string, number>): string | null {
   return entries[entries.length - 1][0];
 }
 
-type GenerationMode = "profile" | "candid";
+// Three points on a polish spectrum:
+//   aspirational — most polished: beautified-but-real skin, quality cameras,
+//                  flattering bokeh and light. The default.
+//   profile      — flattering but realistic, phone-snapshot energy.
+//   candid       — gritty documentary; nothing filtered out.
+type GenerationMode = "aspirational" | "profile" | "candid";
 
-// In Profile mode we filter out entries that produce real-but-unflattering
-// photos — harsh lighting, tired/distracted expressions, drab backdrops.
-// In Candid mode these all stay in to preserve the gritty-documentary feel.
+// In Profile (and Aspirational) mode we filter out entries that produce
+// real-but-unflattering photos — harsh lighting, tired/distracted expressions,
+// drab backdrops. In Candid mode these all stay in for the documentary feel.
 const PROFILE_MODE_EXCLUDES = {
   expressions: [
     "looking slightly past the camera, distracted",
@@ -639,6 +646,53 @@ const PROFILE_MODE_EXCLUDES = {
   ],
 } as const;
 
+// Aspirational mode is stricter than Profile about drab backdrops and flat
+// phone-camera light, but LESS strict about depth of field — flattering bokeh
+// is desirable here, so the DoF exclusions are lifted.
+const ASPIRATIONAL_EXTRA_EXCLUDES: Partial<
+  Record<keyof typeof PROFILE_MODE_EXCLUDES, readonly string[]>
+> = {
+  lighting: [
+    "phone camera flatness, slightly overexposed and washed out",
+    "iPhone HDR look, slightly crunchy with shadows lifted unnaturally",
+    "uneven exposure with a bright window blown out behind them",
+    "flat cloudy day light with no visible shadows",
+    "porch light at dusk, yellowish",
+    "slightly muted indoor light, shadows a touch deeper than ideal",
+    "tungsten interior with no white balance correction, warm-yellow cast",
+  ],
+  settings: [
+    "kitchen with clutter slightly visible on the counter",
+    "gym entrance, glass door reflecting behind them",
+    "office with a monitor glow and sticky notes on the wall behind",
+    "busy sidewalk with pedestrians blurred behind",
+    "standing in a doorway, half-inside half-outside",
+  ],
+};
+
+// Aspirational curates toward quality glass and flattering separation.
+const ASPIRATIONAL_CAMERAS = [
+  "DSLR with 50mm kit lens",
+  "professional 85mm f/1.4 portrait lens",
+  "medium format Hasselblad",
+  "35mm film camera, Kodak Portra 400",
+];
+const ASPIRATIONAL_DOF = [
+  "heavy creamy bokeh, 85mm f/1.4 wide open",
+  "medium format shallow focus with smooth background separation",
+  "moderate bokeh, 85mm f/2 lens",
+  "35mm f/1.8 with gentle background blur",
+];
+// When Aspirational does show a skin note, keep it flattering, never a flaw.
+const ASPIRATIONAL_SKIN = [
+  "light freckles across the nose and cheeks",
+  "healthy, naturally radiant skin",
+  "soft, faint smile lines",
+  "a small beauty mark near the jawline",
+  "smooth, well-rested skin with a subtle natural glow",
+  "lightly sun-kissed skin",
+];
+
 function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   list: readonly string[],
   category: K,
@@ -646,6 +700,11 @@ function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
 ): string[] {
   if (mode === "candid") return [...list];
   const excludes = new Set<string>(PROFILE_MODE_EXCLUDES[category]);
+  if (mode === "aspirational") {
+    // Flattering bokeh is wanted here — don't strip depth of field.
+    if (category === "depthsOfField") excludes.clear();
+    ASPIRATIONAL_EXTRA_EXCLUDES[category]?.forEach((e) => excludes.add(e));
+  }
   return list.filter((item) => !excludes.has(item));
 }
 
@@ -717,13 +776,20 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   // When on, it OWNS the lighting (and, for dramatic weather, the setting).
   let atmosphere: Atmosphere | null = null;
   if (!params || params.atmosphere?.enabled) {
-    // Profile mode only ever sees pleasant weather — no happy-in-a-storm.
+    // Profile/Aspirational only ever see pleasant weather — no happy-in-a-storm.
     let pool = ATMOSPHERES.filter((a) => mode === "candid" || a.profileSafe);
     const selected = params?.atmosphere?.selected;
     if (selected?.length) {
       const sel = new Set(selected);
       const narrowed = pool.filter((a) => sel.has(a.label));
       if (narrowed.length) pool = narrowed;
+    }
+    // Aspirational biases toward the most flattering light within whatever's
+    // allowed (soft, golden, window) — applied after user narrowing so an
+    // explicit selection still wins.
+    if (mode === "aspirational") {
+      const favored = pool.filter((a) => a.aspFavored);
+      if (favored.length) pool = favored;
     }
     if (pool.length) atmosphere = randomPick(pool);
   }
@@ -764,9 +830,25 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const pose = roll("onPhone")
     ? randomPick(PHONE_POSES)
     : pickControlled("pose", RANDOM_TRAITS.poses);
-  const dof = pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField, "depthsOfField");
   const candidness = pickControlled("candidness", RANDOM_TRAITS.candidnessLevels);
-  const camera = pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
+
+  // Aspirational curates camera & depth of field toward quality glass and
+  // flattering bokeh, while still honouring the enable toggle and intersecting
+  // any explicit user selection.
+  const aspirationalPick = (key: string, quality: readonly string[]): string | null => {
+    if (params && !params[key]?.enabled) return null;
+    const sel = params?.[key]?.selected;
+    const pool = sel?.length ? quality.filter((q) => sel.includes(q)) : [...quality];
+    return randomPick(pool.length ? pool : [...quality]);
+  };
+  const dof =
+    mode === "aspirational"
+      ? aspirationalPick("depthOfField", ASPIRATIONAL_DOF)
+      : pickControlled("depthOfField", RANDOM_TRAITS.depthsOfField, "depthsOfField");
+  const camera =
+    mode === "aspirational"
+      ? aspirationalPick("cameraType", ASPIRATIONAL_CAMERAS)
+      : pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
 
   // Pets: at their own rate, and never on an extreme face-only crop where the
   // animal couldn't be seen anyway.
@@ -776,7 +858,12 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       ? pickControlled("companion", RANDOM_TRAITS.companions)
       : null;
 
-  const skin = randomPick(RANDOM_TRAITS.skinDetails);
+  // Aspirational draws only flattering skin notes; the others use the full
+  // (mostly imperfection) list.
+  const skin =
+    mode === "aspirational"
+      ? randomPick(ASPIRATIONAL_SKIN)
+      : randomPick(RANDOM_TRAITS.skinDetails);
 
   // Accessories: independent rolls per category rather than one pick from a big
   // list, so each kind appears at a realistic, separately-tunable rate. Glasses
@@ -790,17 +877,19 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
 
   const imperfection = randomPick(RANDOM_TRAITS.photoImperfections);
 
-  // Randomly include optional details to break the formula.
-  // Profile mode samples imperfections less often to keep results flattering;
-  // Candid mode keeps the original "gritty real" rates.
-  const skinThreshold = mode === "profile" ? 0.5 : 0.25;
-  const imperfectionThreshold = mode === "profile" ? 0.75 : 0.45;
+  // Randomly include optional details to break the formula. Higher threshold =
+  // rarer. Aspirational dials skin notes and photo imperfections way down (and
+  // the skin notes it does show are flattering); Profile is moderate; Candid
+  // keeps the original gritty-real rates.
+  const skinThreshold = mode === "aspirational" ? 0.85 : mode === "profile" ? 0.5 : 0.25;
+  const imperfectionThreshold = mode === "aspirational" ? 0.97 : mode === "profile" ? 0.75 : 0.45;
   const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
   const accessoryPart = accessoryClauses.length ? `, ${accessoryClauses.join(", ")}` : "";
   const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
   // Film-style references heavily steer toward graded/cinematic looks — the
-  // biggest single AI-tell after smooth skin. Profile mode uses them sparingly.
-  const filmThreshold = mode === "profile" ? 0.65 : 0.15;
+  // biggest single AI-tell after smooth skin. Profile mode uses them sparingly;
+  // Aspirational leans into a tasteful editorial grade a bit more.
+  const filmThreshold = mode === "aspirational" ? 0.5 : mode === "profile" ? 0.65 : 0.15;
   const filmPart = isBlackAndWhite || Math.random() > filmThreshold ? `, ${filmStyle}` : "";
   const companionPart = companion ? `. ${companion[0].toUpperCase()}${companion.slice(1)}` : "";
 
@@ -825,13 +914,20 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       `Photo of a ${age}-year-old ${ethnicity} ${gender} with ${hairColor} ${hairStyle}${skinPart}${accessoryPart}${pose ? `, ${pose}` : ""}. Wearing ${clothing}, ${expression}. ${setting}, ${lighting}. ${[bodyAngle, dof, candidness, camera].filter(Boolean).join(", ")}${filmPart}${imperfectionPart}`,
   ];
 
-  // Suffix combines anti-AI-tell language with the anti-frame instruction.
-  // Order matters: skin/exposure language goes first because it's the most
-  // common AI giveaway in the model's baseline output.
-  const profileAntiAI =
-    mode === "profile"
-      ? ". Real skin with visible pores, fine lines, and natural blemishes — not airbrushed, not AI-smooth, not retouched. Imperfect lighting and exposure, not professionally graded or studio-lit. Background mostly in focus, deep depth of field — no creamy bokeh, no shallow focus, no wide-aperture background blur. Off-center asymmetric composition, subject not perfectly centered, slight cropping imperfections, casually framed not professionally composed. Phone snapshot quality, not a portrait session"
-      : "";
+  // Mode-specific quality suffix. Order matters: skin/exposure language goes
+  // first because it's the most common AI giveaway in the model's baseline
+  // output. Candid adds nothing (the gritty look is already in the traits).
+  let qualitySuffix = "";
+  if (mode === "profile") {
+    qualitySuffix =
+      ". Real skin with visible pores, fine lines, and natural blemishes — not airbrushed, not AI-smooth, not retouched. Imperfect lighting and exposure, not professionally graded or studio-lit. Background mostly in focus, deep depth of field — no creamy bokeh, no shallow focus, no wide-aperture background blur. Off-center asymmetric composition, subject not perfectly centered, slight cropping imperfections, casually framed not professionally composed. Phone snapshot quality, not a portrait session";
+  } else if (mode === "aspirational") {
+    // Beautified BUT real — the hard part. We explicitly forbid the plastic,
+    // waxy, over-smoothed AI look while asking for a flattering light retouch,
+    // so it reads as a great real photo rather than an obvious AI render.
+    qualitySuffix =
+      ". Polished, aspirational, editorial-quality portrait — the kind of photo you'd be proud to use professionally. Healthy, even, radiant skin with a subtle, tasteful retouch as if lightly beauty-filtered: smooth and flattering, yet unmistakably real skin with natural fine texture and pores still visible up close — not plastic, waxy, over-airbrushed, or obviously AI-smoothed. Flattering, professional, well-controlled soft lighting that gently shapes the face. Confident, composed, attractive and put-together. Clean, intentional composition with a flattering shallow depth of field that softly separates the subject from the background. Looks like a genuine high-end photograph by a skilled portrait photographer — crisp, real, and three-dimensional, not a casual snapshot and not AI-generated";
+  }
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
 
@@ -843,7 +939,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const textAndLogoSuffix =
     ". Any text, signage, or branding in the scene must be rendered with extra care: correctly spelled real words, cleanly formed and legible letterforms, no garbled, warped, or nonsensical text. Real brand names and logos are allowed only if reproduced accurately with correct shapes, proportions, and colors; if a logo or piece of text cannot be rendered cleanly and correctly, leave it out or keep it blurred and out of focus rather than showing a malformed version — badly rendered text and logos are a dead giveaway of a fake photo";
 
-  return (framingPrefix + randomPick(templates)() + companionPart + profileAntiAI + noBorderSuffix + textAndLogoSuffix)
+  return (framingPrefix + randomPick(templates)() + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
@@ -1318,7 +1414,7 @@ function Home() {
     ...FREQUENCY_DEFAULTS,
   });
   const [ageRange, setAgeRange] = useState<[number, number]>([25, 45]);
-  const [mode, setMode] = useState<GenerationMode>("profile");
+  const [mode, setMode] = useState<GenerationMode>("aspirational");
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
   const [paramDrawerKey, setParamDrawerKey] = useState<string | null>(null);
 
@@ -1964,41 +2060,43 @@ function Home() {
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <span className="meta-label">Mode</span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setMode("profile")}
-                          aria-pressed={mode === "profile"}
-                          className={`flex min-h-[60px] flex-col gap-1.5 rounded-[5px] p-3 text-left transition-colors touch-manipulation ${
-                            mode === "profile"
-                              ? "bg-paper-3"
-                              : "bg-card fine-hover:hover:bg-paper-3/60"
-                          }`}
-                        >
-                          <span className="text-[15px] leading-none text-foreground">
-                            Profile picture
-                          </span>
-                          <span className="text-xs leading-snug text-body-muted">
-                            Flattering light, warm expressions — the photo you&apos;d actually post.
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMode("candid")}
-                          aria-pressed={mode === "candid"}
-                          className={`flex min-h-[60px] flex-col gap-1.5 rounded-[5px] p-3 text-left transition-colors touch-manipulation ${
-                            mode === "candid"
-                              ? "bg-paper-3"
-                              : "bg-card fine-hover:hover:bg-paper-3/60"
-                          }`}
-                        >
-                          <span className="text-[15px] leading-none text-foreground">
-                            Authentic candid
-                          </span>
-                          <span className="text-xs leading-snug text-body-muted">
-                            Harsh light, tired faces, mundane spots — full documentary feel.
-                          </span>
-                        </button>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        {([
+                          {
+                            key: "aspirational",
+                            title: "Aspirational",
+                            desc: "Polished, professional, beautified-but-real — the most flattering look.",
+                          },
+                          {
+                            key: "profile",
+                            title: "Profile picture",
+                            desc: "Flattering but real, phone-snapshot energy — the photo you'd actually post.",
+                          },
+                          {
+                            key: "candid",
+                            title: "Authentic candid",
+                            desc: "Harsh light, tired faces, mundane spots — full documentary feel.",
+                          },
+                        ] as const).map(({ key, title, desc }) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setMode(key)}
+                            aria-pressed={mode === key}
+                            className={`flex min-h-[60px] flex-col gap-1.5 rounded-[5px] p-3 text-left transition-colors touch-manipulation ${
+                              mode === key
+                                ? "bg-paper-3"
+                                : "bg-card fine-hover:hover:bg-paper-3/60"
+                            }`}
+                          >
+                            <span className="text-[15px] leading-none text-foreground">
+                              {title}
+                            </span>
+                            <span className="text-xs leading-snug text-body-muted">
+                              {desc}
+                            </span>
+                          </button>
+                        ))}
                       </div>
                     </div>
                     <div className="rounded-md border p-3 space-y-3">
