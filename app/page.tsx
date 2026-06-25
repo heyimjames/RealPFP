@@ -912,9 +912,12 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const shotDistance = pickControlled("shotDistance", RANDOM_TRAITS.shotDistances, "shotDistances");
   const bodyAngle = pickControlled("bodyAngle", RANDOM_TRAITS.bodyAngles);
   // Pose: occasionally on the phone (at its own rate), otherwise the usual pool.
-  const pose = roll("onPhone")
-    ? randomPick(PHONE_POSES)
-    : pickControlled("pose", RANDOM_TRAITS.poses);
+  // Aspirational never shows the phone — it reads too casual for a polished
+  // portrait, regardless of the on-phone frequency.
+  const pose =
+    mode !== "aspirational" && roll("onPhone")
+      ? randomPick(PHONE_POSES)
+      : pickControlled("pose", RANDOM_TRAITS.poses);
   const candidness = pickControlled("candidness", RANDOM_TRAITS.candidnessLevels);
 
   // Aspirational curates camera & depth of field toward quality glass and
@@ -935,11 +938,12 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       ? aspirationalPick("cameraType", ASPIRATIONAL_CAMERAS)
       : pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
 
-  // Pets: at their own rate, and never on an extreme face-only crop where the
-  // animal couldn't be seen anyway.
+  // Pets: at their own rate, never on an extreme face-only crop (the animal
+  // couldn't be seen), and never in Aspirational — a pet reads too casual for a
+  // polished professional portrait.
   const tooTightForPet = !!shotDistance?.startsWith("Extreme close-up");
   const companion =
-    !tooTightForPet && roll("pets")
+    mode !== "aspirational" && !tooTightForPet && roll("pets")
       ? pickControlled("companion", RANDOM_TRAITS.companions)
       : null;
 
