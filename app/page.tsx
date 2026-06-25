@@ -835,7 +835,15 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
 
-  return (framingPrefix + randomPick(templates)() + companionPart + profileAntiAI + noBorderSuffix)
+  // Text & logos: garbled lettering and mangled logos are among the strongest
+  // AI giveaways. Demand any incidental text/signage/branding be rendered
+  // perfectly — correctly spelled, cleanly formed, accurate proportions — and
+  // tell the model it is better to omit text or a logo entirely than to render
+  // it badly. Applies in both modes.
+  const textAndLogoSuffix =
+    ". Any text, signage, or branding in the scene must be rendered with extra care: correctly spelled real words, cleanly formed and legible letterforms, no garbled, warped, or nonsensical text. Real brand names and logos are allowed only if reproduced accurately with correct shapes, proportions, and colors; if a logo or piece of text cannot be rendered cleanly and correctly, leave it out or keep it blurred and out of focus rather than showing a malformed version — badly rendered text and logos are a dead giveaway of a fake photo";
+
+  return (framingPrefix + randomPick(templates)() + companionPart + profileAntiAI + noBorderSuffix + textAndLogoSuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
