@@ -715,6 +715,40 @@ const ASPIRATIONAL_REALISM = [
   "soft natural shadows, not studio-perfect",
   "fine natural skin texture visible in the light",
 ];
+// Aspirational draws from elevated pools: well-groomed (but still natural) hair,
+// smart-casual clothing, and tasteful accessories. The deliberately undone /
+// scruffy options stay exclusive to Profile and Candid, where they read as real.
+const ASPIRATIONAL_HAIR = [
+  "short hair", "shoulder-length hair", "long hair", "wavy hair",
+  "straight hair", "a pixie cut", "a bob", "curly hair", "braids",
+  "a fade haircut", "a high top fade", "natural TWA hair", "a bald head",
+  "hair in a neat low bun", "hair in a low ponytail", "hair pulled back",
+  "a fresh, well-groomed cut", "a sleek blow-dried style",
+  "softly styled glossy waves", "a sharp, clean fade",
+];
+const ASPIRATIONAL_CLOTHING = [
+  "a well-cut navy blazer over a plain tee",
+  "a tailored charcoal overcoat over a fine roll-neck",
+  "a fine-gauge cashmere sweater",
+  "a crisp white shirt under a fine-gauge merino sweater",
+  "a pressed light blue Oxford shirt",
+  "a smart camel coat over a crewneck",
+  "a structured blazer with an open-collar shirt",
+  "a polished black turtleneck",
+  "a cream cable-knit sweater",
+  "a navy crewneck sweater",
+  "a well-fitted denim jacket over a clean white tee",
+  "a wool overcoat over a soft grey crewneck",
+  "a tailored knit polo",
+  "wide-leg charcoal trousers with a soft grey crewneck tucked in",
+];
+const ASPIRATIONAL_MISC = [
+  "a refined minimalist watch",
+  "a slim leather watch with a worn-in band",
+  "a leather crossbody bag strap across the chest",
+  "a fine knit scarf draped at the neck",
+  "over-ear headphones resting loose around the neck",
+];
 
 function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   list: readonly string[],
@@ -762,17 +796,23 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
     (genderWeights && weightedPick(genderWeights)) ??
     randomPick(RANDOM_TRAITS.genders);
 
-  const hairStyle = randomPick(RANDOM_TRAITS.hairStyles);
+  const hairStyle =
+    mode === "aspirational"
+      ? randomPick(ASPIRATIONAL_HAIR)
+      : randomPick(RANDOM_TRAITS.hairStyles);
   const hairColor = randomPick(RANDOM_TRAITS.hairColors);
   const hair = hairPhrase(hairColor, hairStyle);
 
   // Clothing: formal wear and big hoodies are injected at their own rates;
-  // everything else is everyday casual.
+  // otherwise the base pool — elevated smart-casual for Aspirational, everyday
+  // casual for Profile/Candid.
+  const baseClothing =
+    mode === "aspirational" ? ASPIRATIONAL_CLOTHING : RANDOM_TRAITS.clothing;
   const clothing = roll("formalWear")
     ? randomPick(FORMAL_CLOTHING)
     : roll("bigHoodie")
       ? randomPick(HOODIE_CLOTHING)
-      : randomPick(RANDOM_TRAITS.clothing);
+      : randomPick(baseClothing);
 
   // Film look: occasional black & white, otherwise the colour grades. A B&W
   // roll is a deliberate choice, so it forces the film clause to be expressed
@@ -897,7 +937,10 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   else if (roll("sunglasses")) accessoryClauses.push(randomPick(SUNGLASSES));
   if (roll("jewellery")) accessoryClauses.push(randomPick(JEWELLERY));
   if (roll("hats")) accessoryClauses.push(randomPick(HATS));
-  if (roll("miscAccessory")) accessoryClauses.push(randomPick(MISC_ACCESSORIES));
+  if (roll("miscAccessory"))
+    accessoryClauses.push(
+      randomPick(mode === "aspirational" ? ASPIRATIONAL_MISC : MISC_ACCESSORIES)
+    );
 
   // Aspirational uses subtle authenticity touches (flyaway hair, real
   // catchlight) instead of the generic flaw list — they keep it a believable
