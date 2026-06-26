@@ -1654,28 +1654,27 @@ function Home() {
 
       setImages((prev) => [...newImages, ...prev]);
 
-      for (let i = 0; i < prompts.length; i++) {
+      // Generate several at once instead of one-after-another. Capped so we
+      // don't fire all N requests simultaneously and trip fal.ai rate limits.
+      const CONCURRENCY = 4;
+      let completed = 0;
+
+      const processOne = async (i: number) => {
+        // Honour cancellation: skip any image not yet started.
         if (abortRef.current) {
-          toast.info("Generation cancelled");
-          // Mark all remaining queued images as cancelled
-          const remainingIds = new Set(
-            newImages.slice(i).map((img) => img.id)
-          );
           setImages((prev) =>
             prev.map((img) =>
-              remainingIds.has(img.id) && img.status === "pending"
+              img.id === newImages[i].id && img.status === "pending"
                 ? { ...img, status: "error", error: "Cancelled" }
                 : img
             )
           );
-          break;
+          return;
         }
 
         setImages((prev) =>
           prev.map((img) =>
-            img.id === newImages[i].id
-              ? { ...img, status: "generating" }
-              : img
+            img.id === newImages[i].id ? { ...img, status: "generating" } : img
           )
         );
 
@@ -1691,11 +1690,9 @@ function Home() {
           });
 
           const data = await res.json();
-
           if (!res.ok || data.error) {
             throw new Error(data.error || `HTTP ${res.status}`);
           }
-
           const result = data.results[0];
           if (result.error) {
             throw new Error(result.error);
@@ -1713,8 +1710,6 @@ function Home() {
                 : img
             )
           );
-
-          setProgress({ current: i + 1, total: prompts.length });
         } catch (err) {
           setImages((prev) =>
             prev.map((img) =>
@@ -1722,18 +1717,34 @@ function Home() {
                 ? {
                     ...img,
                     status: "error",
-                    error:
-                      err instanceof Error ? err.message : "Unknown error",
+                    error: err instanceof Error ? err.message : "Unknown error",
                   }
                 : img
             )
           );
-          setProgress({ current: i + 1, total: prompts.length });
+        } finally {
+          completed += 1;
+          setProgress({ current: completed, total: prompts.length });
         }
-      }
+      };
+
+      // Fixed-size worker pool: each worker pulls the next index until the
+      // queue is drained. Images complete (and appear) as soon as they're ready.
+      let nextIndex = 0;
+      const worker = async () => {
+        while (nextIndex < prompts.length) {
+          const i = nextIndex++;
+          await processOne(i);
+        }
+      };
+      await Promise.all(
+        Array.from({ length: Math.min(CONCURRENCY, prompts.length) }, worker)
+      );
 
       setIsGenerating(false);
-      if (!abortRef.current) {
+      if (abortRef.current) {
+        toast.info("Generation cancelled");
+      } else {
         toast.success(
           `Generated ${prompts.length} image${prompts.length > 1 ? "s" : ""}`
         );
