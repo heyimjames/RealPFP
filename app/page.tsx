@@ -1584,8 +1584,12 @@ function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxImage, isMobile]);
 
-  // Track whether localStorage has been loaded
-  const hydratedRef = useRef(false);
+  // Track whether localStorage has been loaded. This is STATE, not a ref, on
+  // purpose: the persist effects below must not observe it flip during the same
+  // mount commit as the restore effect (that race would clobber restored data
+  // with the initial empty array). As state, it only reads true on the *next*
+  // render, so the persist effects skip the initial mount entirely.
+  const [hydrated, setHydrated] = useState(false);
 
   // Restore state from localStorage on mount
   useEffect(() => {
@@ -1609,24 +1613,25 @@ function Home() {
       const storedSaved = localStorage.getItem("ppg-saved");
       if (storedSaved) setSavedImages(JSON.parse(storedSaved));
     } catch {}
-    hydratedRef.current = true;
+    setHydrated(true);
   }, []);
 
-  // Persist images to localStorage on change (skip initial empty render)
+  // Persist images to localStorage — only after hydration, so we never write
+  // the initial empty array over restored data.
   useEffect(() => {
-    if (!hydratedRef.current) return;
+    if (!hydrated) return;
     try {
       localStorage.setItem("ppg-images", JSON.stringify(images));
     } catch {}
-  }, [images]);
+  }, [hydrated, images]);
 
-  // Persist saved images to localStorage on change (skip initial empty render)
+  // Persist saved images to localStorage — same hydration guard.
   useEffect(() => {
-    if (!hydratedRef.current) return;
+    if (!hydrated) return;
     try {
       localStorage.setItem("ppg-saved", JSON.stringify(savedImages));
     } catch {}
-  }, [savedImages]);
+  }, [hydrated, savedImages]);
 
   const generateImages = useCallback(
     async (prompts: string[]) => {
