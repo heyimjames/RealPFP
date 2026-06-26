@@ -1562,6 +1562,13 @@ function Home() {
     }
   };
 
+  const copyPrompt = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => toast.success("Prompt copied"))
+      .catch(() => toast.error("Couldn't copy prompt"));
+  };
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && lightboxImage && !isMobile) {
@@ -2913,8 +2920,23 @@ function Home() {
                   <img
                     src={lightboxImage.imageUrl}
                     alt={lightboxImage.prompt.slice(0, 80)}
-                    className="w-full rounded-lg object-contain"
+                    className="img-outline w-full rounded-lg object-contain"
                   />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Prompt
+                    </span>
+                    <button
+                      onClick={() => copyPrompt(lightboxImage.prompt)}
+                      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors active:scale-[0.96]"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      Copy
+                    </button>
+                  </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {lightboxImage.prompt}
                   </p>
@@ -2975,81 +2997,96 @@ function Home() {
       {/* Image Detail - Desktop Lightbox */}
       {!isMobile && lightboxImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
           onClick={closeLightbox}
         >
           <div
-            className="absolute inset-0 bg-black/80 transition-opacity duration-200"
+            className="absolute inset-0 bg-black/80 motion-safe:transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]"
             style={{ opacity: lightboxVisible ? 1 : 0 }}
           />
+          {/* Close — fixed to the viewport so it's always reachable */}
+          <button
+            onClick={closeLightbox}
+            aria-label="Close"
+            className="fixed right-4 top-4 z-[60] flex size-10 items-center justify-center rounded-full bg-white/10 text-white/90 backdrop-blur-md transition-[background-color,scale] duration-150 ease-out fine-hover:hover:bg-white/20 active:scale-[0.96]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
           <div
-            className="relative z-10 flex max-h-[90vh] max-w-[90vw] items-center gap-6 motion-safe:transition-[opacity,transform] duration-200 ease-out"
+            className="relative z-10 flex max-h-[86vh] items-center gap-5 motion-safe:transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]"
             style={{
               opacity: lightboxVisible ? 1 : 0,
-              transform: lightboxVisible ? "scale(1)" : "scale(0.95)",
+              transform: lightboxVisible ? "scale(1)" : "scale(0.96)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={lightboxImage.imageUrl}
               alt={lightboxImage.prompt.slice(0, 80)}
-              className="img-outline-ondark max-h-[80vh] max-w-[60vw] rounded-lg object-contain shadow-2xl"
+              className="img-outline-ondark max-h-[86vh] max-w-[58vw] rounded-xl object-contain shadow-2xl"
             />
-            <div className="flex max-w-sm flex-col gap-4">
-              <p className="rounded-md bg-black/50 px-4 py-3 text-sm leading-relaxed text-white/90 backdrop-blur-sm">
-                {lightboxImage.prompt}
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => toggleSaveImage(lightboxImage)}
+            {/* Info column: bounded so the prompt scrolls instead of overflowing;
+                buttons stay pinned at the bottom. */}
+            <div className="flex max-h-[86vh] w-[340px] shrink-0 flex-col gap-3 rounded-xl bg-black/55 p-4 backdrop-blur-md">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-white/45">
+                  Prompt
+                </span>
+                <button
+                  onClick={() => copyPrompt(lightboxImage.prompt)}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/70 transition-[background-color,scale] duration-150 ease-out fine-hover:hover:bg-white/10 fine-hover:hover:text-white active:scale-[0.96]"
                 >
-                  {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => downloadImage(lightboxImage)}
-                >
-                  Download
-                </Button>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  Copy
+                </button>
               </div>
-              <div className="flex gap-3">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => {
-                    const id = lightboxImage.id;
-                    closeLightbox();
-                    regenerateOne(id);
-                  }}
-                >
-                  Redo
-                </Button>
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  className="flex-1"
-                  onClick={() => {
-                    const id = lightboxImage.id;
-                    closeLightbox();
-                    deleteImage(id);
-                  }}
-                >
-                  Delete
-                </Button>
+              <div className="min-h-0 flex-1 overflow-y-auto pr-1 text-sm leading-relaxed text-white/80">
+                {lightboxImage.prompt}
+              </div>
+              <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => toggleSaveImage(lightboxImage)}
+                  >
+                    {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => downloadImage(lightboxImage)}
+                  >
+                    Download
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      const id = lightboxImage.id;
+                      closeLightbox();
+                      regenerateOne(id);
+                    }}
+                  >
+                    Redo
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      const id = lightboxImage.id;
+                      closeLightbox();
+                      deleteImage(id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
-            <button
-              onClick={closeLightbox}
-              className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/80"
-            >
-              ✕
-            </button>
           </div>
         </div>
       )}
