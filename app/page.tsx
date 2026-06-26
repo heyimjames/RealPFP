@@ -1529,6 +1529,9 @@ function Home() {
     null
   );
   const [lightboxVisible, setLightboxVisible] = useState(false);
+  // Prompt disclosure inside the lightbox — collapsed by default so the image
+  // is the hero; the prompt is power-user info revealed on demand.
+  const [promptExpanded, setPromptExpanded] = useState(false);
 
   // Settings drawer (mobile)
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1545,6 +1548,7 @@ function Home() {
 
   // Lightbox open/close
   const openLightbox = (image: GeneratedImage) => {
+    setPromptExpanded(false); // always start collapsed
     if (isMobile) {
       setLightboxImage(image);
     } else {
@@ -2923,9 +2927,18 @@ function Home() {
                     className="img-outline w-full rounded-lg object-contain"
                   />
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    <button
+                      onClick={() => setPromptExpanded((v) => !v)}
+                      aria-expanded={promptExpanded}
+                      className="-ml-1 flex items-center gap-1 rounded-md px-1 py-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground active:scale-[0.97]"
+                    >
+                      <ChevronDownIcon
+                        className={`size-3.5 motion-safe:transition-transform duration-200 ease-out ${promptExpanded ? "" : "-rotate-90"}`}
+                        strokeWidth={2}
+                        aria-hidden
+                      />
                       Prompt
-                    </span>
+                    </button>
                     <button
                       onClick={() => copyPrompt(lightboxImage.prompt)}
                       className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors active:scale-[0.96]"
@@ -2937,9 +2950,16 @@ function Home() {
                       Copy
                     </button>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lightboxImage.prompt}
-                  </p>
+                  <div
+                    className="grid motion-safe:transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+                    style={{ gridTemplateRows: promptExpanded ? "1fr" : "0fr" }}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {lightboxImage.prompt}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <DrawerFooter className="flex-col gap-2">
                   <div className="flex gap-2">
@@ -3027,13 +3047,22 @@ function Home() {
               alt={lightboxImage.prompt.slice(0, 80)}
               className="img-outline-ondark max-h-[86vh] max-w-[58vw] rounded-xl object-contain shadow-2xl"
             />
-            {/* Info column: bounded so the prompt scrolls instead of overflowing;
-                buttons stay pinned at the bottom. */}
+            {/* Info column: prompt is a collapsible disclosure (collapsed by
+                default); when open it scrolls within bounds. Buttons stay pinned. */}
             <div className="flex max-h-[86vh] w-[340px] shrink-0 flex-col gap-3 rounded-xl bg-black/55 p-4 backdrop-blur-md">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-white/45">
+                <button
+                  onClick={() => setPromptExpanded((v) => !v)}
+                  aria-expanded={promptExpanded}
+                  className="-ml-1 flex items-center gap-1 rounded-md px-1 py-0.5 text-[11px] font-medium uppercase tracking-wider text-white/55 transition-colors fine-hover:hover:text-white/80"
+                >
+                  <ChevronDownIcon
+                    className={`size-3.5 motion-safe:transition-transform duration-200 ease-out ${promptExpanded ? "" : "-rotate-90"}`}
+                    strokeWidth={2}
+                    aria-hidden
+                  />
                   Prompt
-                </span>
+                </button>
                 <button
                   onClick={() => copyPrompt(lightboxImage.prompt)}
                   className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/70 transition-[background-color,scale] duration-150 ease-out fine-hover:hover:bg-white/10 fine-hover:hover:text-white active:scale-[0.96]"
@@ -3045,8 +3074,16 @@ function Home() {
                   Copy
                 </button>
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto pr-1 text-sm leading-relaxed text-white/80">
-                {lightboxImage.prompt}
+              {/* grid 0fr→1fr animates height smoothly without measuring content */}
+              <div
+                className="grid min-h-0 motion-safe:transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+                style={{ gridTemplateRows: promptExpanded ? "1fr" : "0fr" }}
+              >
+                <div className="overflow-hidden">
+                  <p className="max-h-[45vh] overflow-y-auto pr-1 text-sm leading-relaxed text-white/80">
+                    {lightboxImage.prompt}
+                  </p>
+                </div>
               </div>
               <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
                 <div className="grid grid-cols-2 gap-2">
