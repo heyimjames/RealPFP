@@ -3042,14 +3042,54 @@ function Home() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Left: actions — kept opposite the prompt so the image is flanked
+                by a balanced pair of glass panels. */}
+            <div className="flex w-[148px] shrink-0 flex-col justify-center gap-2 rounded-xl bg-black/55 p-3 backdrop-blur-md">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => toggleSaveImage(lightboxImage)}
+              >
+                {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
+              </Button>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => downloadImage(lightboxImage)}
+              >
+                Download
+              </Button>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  const id = lightboxImage.id;
+                  closeLightbox();
+                  regenerateOne(id);
+                }}
+              >
+                Redo
+              </Button>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => {
+                  const id = lightboxImage.id;
+                  closeLightbox();
+                  deleteImage(id);
+                }}
+              >
+                Delete
+              </Button>
+            </div>
             <img
               src={lightboxImage.imageUrl}
               alt={lightboxImage.prompt.slice(0, 80)}
-              className="img-outline-ondark max-h-[86vh] max-w-[58vw] rounded-xl object-contain shadow-2xl"
+              className="img-outline-ondark max-h-[86vh] max-w-[52vw] rounded-xl object-contain shadow-2xl"
             />
-            {/* Info column: prompt is a collapsible disclosure (collapsed by
-                default); when open it scrolls within bounds. Buttons stay pinned. */}
-            <div className="flex max-h-[86vh] w-[340px] shrink-0 flex-col gap-3 rounded-xl bg-black/55 p-4 backdrop-blur-md">
+            {/* Right: prompt — a collapsible disclosure (collapsed by default);
+                when open it scrolls within bounds. */}
+            <div className="flex max-h-[86vh] w-[320px] shrink-0 flex-col gap-3 rounded-xl bg-black/55 p-4 backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => setPromptExpanded((v) => !v)}
@@ -3080,47 +3120,9 @@ function Home() {
                 style={{ gridTemplateRows: promptExpanded ? "1fr" : "0fr" }}
               >
                 <div className="overflow-hidden">
-                  <p className="max-h-[45vh] overflow-y-auto pr-1 text-sm leading-relaxed text-white/80">
+                  <p className="max-h-[64vh] overflow-y-auto pr-1 text-sm leading-relaxed text-white/80">
                     {lightboxImage.prompt}
                   </p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => toggleSaveImage(lightboxImage)}
-                  >
-                    {isImageSaved(lightboxImage.id) ? "Unsave" : "Save"}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => downloadImage(lightboxImage)}
-                  >
-                    Download
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      const id = lightboxImage.id;
-                      closeLightbox();
-                      regenerateOne(id);
-                    }}
-                  >
-                    Redo
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      const id = lightboxImage.id;
-                      closeLightbox();
-                      deleteImage(id);
-                    }}
-                  >
-                    Delete
-                  </Button>
                 </div>
               </div>
             </div>
