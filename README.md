@@ -1,36 +1,44 @@
-# RealPFP — Profile Picture Generator
+# RealPFP
 
-Generate realistic, natural-looking AI profile photos — not the glossy, plastic kind. Live at **[realpfp.vercel.app](https://realpfp.vercel.app)**.
+**Realistic AI profile pictures that don't look AI-generated.**
 
-You bring your own [fal.ai](https://fal.ai) API key (stored only in your browser), pick how you want the photos to look, and generate as many as you like.
+Free, open-source, and private — you bring your own [fal.ai](https://fal.ai) key and it never leaves your browser.
+
+Live at **[realpfp.vercel.app](https://realpfp.vercel.app)**
+
+![RealPFP](public/og-image.png)
 
 ## What it does
 
-- **Three looks** — choose the vibe:
-  - **Aspirational** — polished and professional, but still a believable real photo.
-  - **Profile picture** — flattering but natural, like a photo you'd actually post.
-  - **Authentic candid** — gritty, documentary, real-life imperfect.
-- **Control who appears** — dial in the distribution of ethnicity and gender with simple sliders, or leave it to an even random mix.
-- **Control what appears** — sliders for how often glasses, jewellery, hats, formal wear, pets, named locations and more show up.
-- **Coherent scenes** — time of day, weather and lighting always make sense together (no smiling in a thunderstorm).
-- **Variety** — age range, camera type, shot distance, poses, backgrounds, and real-world locations (Lisbon, Tokyo, NYC…).
-- **Batch & export** — generate many at once, save favourites to a library, download single images or a ZIP. You can also write a custom prompt or upload a CSV of prompts.
+Pick a look, dial in who and what appears, and generate as many profile pictures as you like. The prompts are tuned to dodge the usual AI tells — plastic skin, mangled hands, garbled text, every face dead-centre.
 
-## Getting started
+- **Three looks** — *Aspirational* (polished but real), *Profile picture* (natural, postable), *Authentic candid* (documentary, imperfect).
+- **Control the people** — sliders for ethnicity and gender distribution, or an even random mix.
+- **Control the details** — how often glasses, jewellery, hats, pets, named locations and more show up.
+- **Coherent scenes** — time of day, weather and light always agree (no smiling in a thunderstorm).
+- **Batch & export** — generate in bulk, save favourites, download a single image or a ZIP.
 
-You'll need [Node.js](https://nodejs.org) and a free [fal.ai API key](https://fal.ai/dashboard/keys).
+## Run it locally
+
+You'll need [Node.js](https://nodejs.org) and a free [fal.ai key](https://fal.ai/dashboard/keys).
 
 ```bash
+git clone https://github.com/heyimjames/RealPFP.git
+cd RealPFP
 npm install
 npm run dev
 ```
 
-Open **[http://localhost:2929](http://localhost:2929)**, click **Settings** (top right), and paste your fal.ai key. That's it — keys are kept in your browser and never sent to any server but fal.ai's.
+Open **[localhost:2929](http://localhost:2929)**, hit **Settings**, and paste your fal.ai key. It's stored only in your browser and sent nowhere except fal.ai.
 
 ## How it works
 
-Each generation builds a detailed, randomised prompt from your chosen settings — combining traits, scene, lighting, camera and framing into natural-sounding descriptions — then sends it to fal.ai's image model. The prompt logic is deliberately tuned to avoid the usual "AI giveaways" (plastic skin, garbled text, mangled logos, every face dead-centre).
+Every image builds a detailed, randomised prompt from your settings — traits, scene, lighting, camera, framing — written as natural description and sent to fal.ai's `nano-banana-2` model. The prompt logic leans on *positive* description (what real photos actually have: pore texture, one light source, correct anatomy) rather than negation, which is what keeps results from looking synthetic.
 
 ## Tech
 
-Next.js · React · TypeScript · Tailwind CSS · fal.ai image API · deployed on Vercel.
+Next.js · React · TypeScript · Tailwind CSS · fal.ai · Vercel
+
+## License
+
+[MIT](LICENSE) © James Frewin
