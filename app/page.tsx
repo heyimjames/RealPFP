@@ -3089,6 +3089,16 @@ function Home() {
           </a>
           {" · "}
           <a
+            href="https://octoberwip.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors fine-hover:hover:text-foreground"
+          >
+            OCTOBER
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
+          {" · "}
+          <a
             href="https://github.com/heyimjames"
             target="_blank"
             rel="noopener noreferrer"

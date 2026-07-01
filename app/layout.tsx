@@ -34,6 +34,7 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "Realistic Profile Picture Generator",
+    locale: "en_GB",
     title: TITLE,
     description: DESCRIPTION,
     images: [
@@ -47,9 +48,35 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@james_frewin",
+    creator: "@james_frewin",
     title: TITLE,
     description: DESCRIPTION,
     images: ["/og-image.png"],
+  },
+};
+
+// JSON-LD structured data — helps search engines understand the app and
+// gives crawlable authorship backlinks (jamesfrewin.com + octoberwip.com).
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "RealPFP",
+  url: SITE_URL,
+  description: DESCRIPTION,
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "Web",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  author: {
+    "@type": "Person",
+    name: "James Frewin",
+    url: "https://jamesfrewin.com",
+  },
+  creator: {
+    "@type": "Organization",
+    name: "OCTOBER",
+    url: "https://octoberwip.com",
   },
 };
 
@@ -61,6 +88,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="min-h-screen bg-background antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         {children}
         <Toaster position="top-center" richColors />
       </body>
