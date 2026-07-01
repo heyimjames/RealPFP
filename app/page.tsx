@@ -135,6 +135,8 @@ const RANDOM_TRAITS = {
     "slightly muted indoor light, shadows a touch deeper than ideal",
     "iPhone HDR look, slightly crunchy with shadows lifted unnaturally",
     "overcast daylight with cool flat tones, slightly low contrast",
+    "soft directional light from one side, a single realistic catchlight in the eyes",
+    "window light from camera-left, gentle fill, natural soft shadow on the far cheek",
   ],
   settings: [
     "outdoors with blurred greenery behind",
@@ -201,23 +203,8 @@ const RANDOM_TRAITS = {
     "Three-quarter shot from the knees up, environment visible",
     "Wider environmental shot, full upper body with space around them",
   ],
-  // Pets the subject is holding / playing with — varied species, size, colour
-  // and breed. Added as an occasional extra clause (see the gate in
-  // generateRandomPrompt), not on every image.
-  companions: [
-    "holding a small ginger tabby cat against their chest",
-    "cradling a fluffy white kitten in both hands",
-    "a sleek black cat draped over one shoulder",
-    "a long-haired calico cat curled in the crook of their arm",
-    "playing with a golden retriever puppy on their lap",
-    "kneeling beside a large grey Weimaraner, a hand on its back",
-    "holding a tiny brown dachshund puppy up near their face",
-    "a fluffy tan corgi sitting in their lap, looking up",
-    "scratching the ears of a black Labrador beside them",
-    "holding a small grey French bulldog under one arm",
-    "a border collie leaning into them mid-laugh",
-    "holding a fluffy white Samoyed puppy close",
-  ],
+  // Pets: see the decomposed COMPANION model below — type / colour / coat /
+  // size / action are now independent axes assembled at generation time.
   filmStyles: [
     "natural film grain, Kodak Portra 400 tones",
     "warm color grading, medium format feel",
@@ -323,6 +310,9 @@ const RANDOM_TRAITS = {
     "a few grey eyebrow hairs",
     "peeling skin on the nose from sunburn",
     "sweat visible on the forehead",
+    "fine vellus hairs catching the light along the jaw and cheek",
+    "natural under-eye shadow, slightly puffy",
+    "subtle shine on the nose and forehead, matte elsewhere",
   ],
   photoImperfections: [
     "slightly off-center framing",
@@ -340,6 +330,98 @@ const RANDOM_TRAITS = {
     "fingerprint smudge on the lens causing slight haze on one side",
   ],
 };
+
+// Pets the subject is holding / interacting with. Decomposed into independent
+// axes — TYPE, COLOUR, COAT, SIZE and the hold/ACTION all vary on their own —
+// so results never repeat the same canned phrase. `type` carries its species,
+// so a dog is never coloured like a cat, and `patterned` types (tabby, calico…)
+// already encode colour, so the colour axis is skipped for them.
+type CompanionType = {
+  noun: string;
+  species: "cat" | "dog";
+  patterned?: boolean;
+};
+const COMPANION = {
+  types: [
+    { noun: "tabby cat", species: "cat", patterned: true },
+    { noun: "calico cat", species: "cat", patterned: true },
+    { noun: "tortoiseshell cat", species: "cat", patterned: true },
+    { noun: "tuxedo cat", species: "cat", patterned: true },
+    { noun: "shorthair cat", species: "cat" },
+    { noun: "Persian cat", species: "cat" },
+    { noun: "Siamese cat", species: "cat" },
+    { noun: "Maine Coon cat", species: "cat" },
+    { noun: "Bengal cat", species: "cat" },
+    { noun: "Ragdoll cat", species: "cat" },
+    { noun: "golden retriever", species: "dog" },
+    { noun: "Labrador", species: "dog" },
+    { noun: "dachshund", species: "dog" },
+    { noun: "corgi", species: "dog" },
+    { noun: "French bulldog", species: "dog" },
+    { noun: "border collie", species: "dog" },
+    { noun: "Samoyed", species: "dog" },
+    { noun: "Weimaraner", species: "dog" },
+    { noun: "beagle", species: "dog" },
+    { noun: "cocker spaniel", species: "dog" },
+    { noun: "Shiba Inu", species: "dog" },
+    { noun: "Jack Russell terrier", species: "dog" },
+  ] as CompanionType[],
+  colours: [
+    "ginger", "grey", "black", "white", "cream", "brown", "tan",
+    "golden", "sandy", "chocolate-brown", "silver-grey", "black-and-white",
+  ],
+  // "" = no coat-texture word that time (keeps phrasing from getting samey).
+  coats: ["", "fluffy", "sleek", "long-haired", "short-haired", "fuzzy", "scruffy"],
+  sizes: ["", "tiny", "small", "large"],
+  // Hold / interaction. `build` receives the assembled animal noun phrase.
+  actions: [
+    { label: "Held against the chest", build: (np: string) => `holding ${np} against their chest` },
+    { label: "Cradled in both hands", build: (np: string) => `cradling ${np} in both hands` },
+    { label: "Draped over one shoulder", build: (np: string) => `${np} draped over one shoulder` },
+    { label: "Curled in the crook of the arm", build: (np: string) => `${np} curled in the crook of their arm` },
+    { label: "Playing on their lap", build: (np: string) => `playing with ${np} on their lap` },
+    { label: "Kneeling beside it", build: (np: string) => `kneeling beside ${np}, a hand resting on its back` },
+    { label: "Held up near the face", build: (np: string) => `holding ${np} up near their face` },
+    { label: "Sitting in their lap", build: (np: string) => `${np} sitting in their lap, looking up` },
+    { label: "Scratching its ears", build: (np: string) => `scratching the ears of ${np} beside them` },
+    { label: "Tucked under one arm", build: (np: string) => `holding ${np} tucked under one arm` },
+    { label: "Leaning into them", build: (np: string) => `${np} leaning into them` },
+    { label: "Held close", build: (np: string) => `holding ${np} close` },
+  ],
+};
+
+// Assemble a pet clause from the independent axes, honouring each axis's
+// enable/selection toggle. Returns null when the type axis is off (→ no pet).
+function buildCompanion(
+  pick: (key: string, defaults: readonly string[]) => string | null
+): string | null {
+  const noun = pick("petType", COMPANION.types.map((t) => t.noun));
+  if (!noun) return null;
+  const type = COMPANION.types.find((t) => t.noun === noun);
+  if (!type) return null;
+
+  const colour = type.patterned ? null : pick("petColour", COMPANION.colours);
+  const coat = randomPick([...COMPANION.coats]);
+  const size = randomPick([...COMPANION.sizes]);
+
+  // ~30% of the time it's a young animal → kitten / puppy.
+  let animalNoun = type.noun;
+  if (Math.random() < 0.3) {
+    animalNoun =
+      type.species === "cat"
+        ? animalNoun.replace(/\bcat\b/, "kitten")
+        : `${animalNoun} puppy`;
+  }
+
+  const descriptors = [size, coat, colour, animalNoun].filter(Boolean);
+  const np = `a ${descriptors.join(" ")}`.replace(/^a (?=[aeiou])/i, "an ");
+
+  const actLabel = pick("petAction", COMPANION.actions.map((a) => a.label));
+  const action =
+    COMPANION.actions.find((a) => a.label === actLabel) ??
+    randomPick([...COMPANION.actions]);
+  return action.build(np);
+}
 
 // Expressions that read as overtly happy. Suppressed when an atmosphere has
 // allowJoy: false — you don't grin through a thunderstorm.
@@ -544,10 +626,22 @@ const AI_PARAM_DEFS = [
     options: RANDOM_TRAITS.shotDistances,
   },
   {
-    key: "companion",
-    label: "Pet breeds",
+    key: "petType",
+    label: "Pet type & breed",
     desc: "Which cats & dogs are eligible (how often is set under Appearance frequency).",
-    options: RANDOM_TRAITS.companions,
+    options: COMPANION.types.map((t) => t.noun),
+  },
+  {
+    key: "petColour",
+    label: "Pet colour",
+    desc: "Coat colours drawn for non-patterned pets (tabby, calico etc. keep their own).",
+    options: COMPANION.colours,
+  },
+  {
+    key: "petAction",
+    label: "Pet pose",
+    desc: "How the pet is held or interacting — cradled, on the lap, leaning in…",
+    options: COMPANION.actions.map((a) => a.label),
   },
   {
     key: "bodyAngle",
@@ -696,24 +790,26 @@ const ASPIRATIONAL_DOF = [
   "35mm f/1.8 with gentle background blur",
 ];
 // When Aspirational does show a skin note, keep it flattering, never a flaw.
+// Phrased toward real, matte, textured skin — not "radiant/glow" beauty-filter
+// language, which on this model triggers the waxy, over-smoothed AI look.
 const ASPIRATIONAL_SKIN = [
   "light freckles across the nose and cheeks",
-  "healthy, naturally radiant skin",
+  "healthy, even skin with natural texture and a soft matte finish",
   "soft, faint smile lines",
   "a small beauty mark near the jawline",
-  "smooth, well-rested skin with a subtle natural glow",
-  "lightly sun-kissed skin",
+  "well-rested skin with visible pores and fine vellus hairs",
+  "lightly sun-kissed skin with subtle natural texture",
 ];
 // Subtle authenticity touches for Aspirational. A flawless, perfectly clean
 // frame reads as stock/AI; these keep it a believable real photograph WITHOUT
 // being unflattering — natural, not flaws.
 const ASPIRATIONAL_REALISM = [
   "a few natural flyaway hairs catching the light",
-  "a genuine catchlight in the eyes",
+  "a single realistic catchlight in the eyes from one light source",
   "slightly off-center, naturally composed framing",
-  "a relaxed, candid micro-expression",
-  "soft natural shadows, not studio-perfect",
-  "fine natural skin texture visible in the light",
+  "a relaxed, candid micro-expression with a slightly asymmetric smile",
+  "soft natural shadows on one side of the face, not studio-even",
+  "fine natural skin texture, visible pores and vellus hairs in the light",
 ];
 // Aspirational draws from elevated pools: well-groomed (but still natural) hair,
 // smart-casual clothing, and tasteful accessories. The deliberately undone /
@@ -944,7 +1040,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const tooTightForPet = !!shotDistance?.startsWith("Extreme close-up");
   const companion =
     mode !== "aspirational" && !tooTightForPet && roll("pets")
-      ? pickControlled("companion", RANDOM_TRAITS.companions)
+      ? buildCompanion(pickControlled)
       : null;
 
   // Aspirational draws only flattering skin notes; the others use the full
@@ -1018,13 +1114,13 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   let qualitySuffix = "";
   if (mode === "profile") {
     qualitySuffix =
-      ". Real skin with visible pores, fine lines, and natural blemishes — not airbrushed, not AI-smooth, not retouched. Imperfect lighting and exposure, not professionally graded or studio-lit. Background mostly in focus, deep depth of field — no creamy bokeh, no shallow focus, no wide-aperture background blur. Off-center asymmetric composition, subject not perfectly centered, slight cropping imperfections, casually framed not professionally composed. Phone snapshot quality, not a portrait session";
+      ". Real matte skin showing visible pores, fine lines, natural blemishes and a slightly asymmetric face. Ordinary uneven lighting and exposure, true-to-life muted color with a neutral white balance. Background mostly in sharp focus, deep depth of field, everything roughly equally sharp. Off-center, casually-framed composition with the subject not perfectly centered. Looks like an ordinary phone snapshot a friend took. Keep skin texture real and unretouched — not airbrushed, not AI-smooth, no creamy background blur";
   } else if (mode === "aspirational") {
     // Beautified BUT real — the hard part. We explicitly forbid the plastic,
     // waxy, over-smoothed AI look while asking for a flattering light retouch,
     // so it reads as a great real photo rather than an obvious AI render.
     qualitySuffix =
-      ". A real, authentic photograph of a real person — genuinely photographed on a real camera in a real place, candid and believable, absolutely NOT a 3D render, not CGI, not a glossy stock photo, not AI-generated. Polished, aspirational, editorial-quality — the kind of photo you'd be proud to use professionally. Healthy, even, radiant skin with a subtle, tasteful retouch as if lightly beauty-filtered: smooth and flattering, yet unmistakably real human skin with natural pores, fine texture, and tiny real-world irregularities still visible up close — never plastic, waxy, over-airbrushed, or AI-smooth. Flattering, professional, well-controlled soft lighting that gently shapes the face. Confident, composed, attractive and put-together. Clean, intentional composition with a flattering shallow depth of field that softly separates the subject from the background. The overall feel is a high-end real photograph by a skilled portrait photographer — crisp, dimensional, and authentically photographic";
+      ". A real, authentic photograph of a real person, genuinely shot on a real camera in a real place — candid, believable and editorial-quality, the kind of photo you'd be proud to use professionally. Real human skin with a light, tasteful retouch: healthy and even, yet keeping its natural pores, fine vellus hairs, faint texture and tiny real-world irregularities clearly visible up close, with a soft matte finish and subtle shine only on the nose and forehead. Flattering soft directional light that shapes the face, with a single realistic catchlight in the eyes and gentle natural shadow on one side. True-to-life, slightly muted color with a neutral white balance. A relaxed, composed, slightly asymmetric expression. Clean, intentional composition with a natural shallow depth of field at about f/2 that gently separates the subject from the background. Keep it a genuine photograph — real skin texture, not plastic, waxy, over-airbrushed or AI-smooth, and not a glossy stock photo or 3D render";
   }
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
@@ -1037,7 +1133,16 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const textAndLogoSuffix =
     ". Any text, signage, or branding in the scene must be rendered with extra care: correctly spelled real words, cleanly formed and legible letterforms, no garbled, warped, or nonsensical text. Real brand names and logos are allowed only if reproduced accurately with correct shapes, proportions, and colors; if a logo or piece of text cannot be rendered cleanly and correctly, leave it out or keep it blurred and out of focus rather than showing a malformed version — badly rendered text and logos are a dead giveaway of a fake photo";
 
-  return (framingPrefix + randomPick(templates)() + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix)
+  // Anatomy: distorted limbs and hands are the single strongest AI giveaway
+  // after skin, and crossed-arm / hand-near-face poses are where the model
+  // slips. Phrased positive-first (nano-banana-2 has no negative-prompt field
+  // and can *summon* what it's told to avoid), with a short negation tail and
+  // the same "hide it rather than mangle it" fallback used for text. Applies in
+  // every mode.
+  const anatomySuffix =
+    ". Anatomically correct and naturally proportioned: a real human body with believable bone structure, shoulders, arms and hands resting in natural, relaxed positions, every limb connected and bending correctly at real joints, each hand with exactly five normally-shaped fingers, and true-to-life head-to-body and facial proportions. Keep any visible hands, fingers, arms and shoulders clean, correctly formed and correctly counted; if a hand or arm cannot be rendered cleanly, let it fall naturally out of frame or rest relaxed and partly hidden rather than showing warped, extra, missing or fused fingers or limbs — mangled hands and distorted anatomy are a dead giveaway of a fake photo";
+
+  return (framingPrefix + randomPick(templates)() + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
@@ -1307,7 +1412,9 @@ function FillSlider({
         className="pointer-events-none absolute inset-y-0 left-0 bg-[color-mix(in_srgb,var(--charcoal)_16%,var(--stone))] transition-colors group-hover/fill:bg-[color-mix(in_srgb,var(--charcoal)_22%,var(--stone))]"
         style={{ width: `${Math.max(0, Math.min(100, fillPct))}%` }}
       />
-      <span className="relative z-10 truncate pr-2 text-sm text-foreground">{label}</span>
+      <span className="relative z-10 truncate pr-2 text-sm text-foreground">
+        {label.charAt(0).toUpperCase() + label.slice(1)}
+      </span>
       <span className="relative z-10 flex shrink-0 items-baseline gap-1.5 text-sm text-foreground tabular-nums">
         {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
         <span>{value}{suffix}</span>
@@ -1460,6 +1567,172 @@ function FrequencyControl({
   );
 }
 
+// ---------- Landing hero ----------
+// A sample of real generations (stored in /public/faces) shown large and
+// scattered around the headline + CTA, previewing the variety the generator
+// produces before the user touches anything. Purely decorative (aria-hidden).
+// Freshly generated in Profile-picture mode (2026-07) with the improved prompts.
+// Order: 0–5 are the six shown on mobile (a diverse, striking subset); 6–13 fill
+// out the desktop scatter. FACE_SPOTS indexes into this array.
+const SAMPLE_FACES = [
+  "face-00.webp",
+  "face-01.webp",
+  "face-02.webp",
+  "face-03.webp",
+  "face-04.webp",
+  "face-05.webp",
+  "face-06.webp",
+  "face-07.webp",
+  "face-08.webp",
+  "face-09.webp",
+  "face-10.webp",
+  "face-11.webp",
+  "face-12.webp",
+  "face-13.webp",
+];
+
+/* ─────────────────────────────────────────────────────────
+ * LANDING HERO — full-screen scattered face preview + CTA
+ *
+ *   Large sample faces are hand-scattered around generous
+ *   whitespace; the headline + button sit centred on top. The
+ *   button is an in-page anchor that smooth-scrolls to #generator.
+ *
+ *   • Outer <span> owns positioning; inner <img> owns the bob,
+ *     so the float never fights the centring transform.
+ *   • Each circle floats on its own clock (varied dur/delay).
+ *   • Decorative: faces are aria-hidden; motion respects
+ *     prefers-reduced-motion (see .face-float in globals.css).
+ * ───────────────────────────────────────────────────────── */
+// Hand-placed scatter — percentages locate each circle's CENTRE. `s` scales the
+// shared base diameter (--face-d); the denser inner circles are hidden on small
+// screens so the centred copy keeps its breathing room.
+type FaceSpot = {
+  face: number;
+  left: number;
+  top: number;
+  s: number;
+  mobile?: boolean;
+};
+const FACE_SPOTS: FaceSpot[] = [
+  // Mobile-visible six (faces 0–5) — kept inset (15–85%) so they stay fully round
+  // and never clip into slivers at a phone-width edge; they frame the copy.
+  { face: 0, left: 50, top: 11, s: 0.9, mobile: true },
+  { face: 1, left: 16, top: 20, s: 1.0, mobile: true },
+  { face: 2, left: 84, top: 18, s: 1.0, mobile: true },
+  { face: 3, left: 17, top: 80, s: 0.85, mobile: true },
+  { face: 4, left: 83, top: 79, s: 0.95, mobile: true },
+  { face: 5, left: 50, top: 90, s: 0.8, mobile: true },
+  // Desktop-only (faces 6–13) — inset enough that the full circle always clears
+  // the edge (no half-moon clipping); the viewport is wide so they sit outward.
+  { face: 6, left: 8, top: 49, s: 1.2 },
+  { face: 7, left: 31, top: 33, s: 0.7 },
+  { face: 8, left: 34, top: 87, s: 0.9 },
+  { face: 9, left: 67, top: 22, s: 0.7 },
+  { face: 10, left: 91, top: 43, s: 0.8 },
+  { face: 11, left: 72, top: 85, s: 0.85 },
+  { face: 12, left: 90, top: 87, s: 0.72 },
+  { face: 13, left: 66, top: 67, s: 0.72 },
+];
+
+function LandingHero() {
+  // Scroll parallax: publish window.scrollY onto the faces container as
+  // --scroll-y (rAF-throttled); each face multiplies it by its own --depth.
+  // One variable write drives every face. Skipped under reduced-motion.
+  const facesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const el = facesRef.current;
+    if (!el) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        el.style.setProperty("--scroll-y", `${window.scrollY}px`);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <section className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden px-6 [--face-d:clamp(76px,11vmin,150px)]">
+      {/* Scattered floating faces — decorative preview of real generations */}
+      <div
+        ref={facesRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 animate-in fade-in duration-1000"
+      >
+        {FACE_SPOTS.map((spot, i) => (
+          <span
+            key={i}
+            className={`face-spot pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 ${spot.mobile ? "" : "hidden sm:block"}`}
+            style={{ left: `${spot.left}%`, top: `${spot.top}%` }}
+          >
+            {/* Layers, outer→inner: parallax (scroll) · float (idle bob,
+                pauses on hover) · lift (hover pick-up) · img. Each owns one
+                motion so they never fight. */}
+            <div
+              className="face-parallax"
+              style={{ ["--depth" as string]: -(0.12 + (i % 5) * 0.05) }}
+            >
+              <div
+                className="face-float"
+                style={{
+                  ["--float-dur" as string]: `${6 + (i % 5)}s`,
+                  ["--float-delay" as string]: `-${(i % 7) * 0.8}s`,
+                }}
+              >
+                <div
+                  className="face-lift aspect-square overflow-hidden rounded-full ring-1 ring-black/[0.08] transition-[transform,box-shadow] duration-[350ms] ease-[cubic-bezier(0.34,1.4,0.5,1)] will-change-transform"
+                  style={{ width: `calc(var(--face-d) * ${spot.s})` }}
+                >
+                  <img
+                    src={`/faces/${SAMPLE_FACES[spot.face]}`}
+                    alt=""
+                    draggable={false}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </span>
+        ))}
+      </div>
+
+      {/* Centred headline + CTA */}
+      <div className="animate-in fade-in slide-in-from-bottom-2 relative z-10 flex max-w-xl flex-col items-center text-center duration-700">
+        <h1 className="text-4xl tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
+          Profile pictures that look like real people.
+        </h1>
+        <a
+          href="#generator"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground transition-[transform,opacity] duration-200 active:scale-[0.97] fine-hover:hover:opacity-90"
+        >
+          Open the generator
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 // ---------- Main component ----------
 function Home() {
   const isMobile = useIsMobile();
@@ -1488,7 +1761,9 @@ function Home() {
     location: { enabled: true, selected: [...RANDOM_TRAITS.locations] },
     atmosphere: { enabled: true, selected: ATMOSPHERES.map((a) => a.label) },
     shotDistance: { enabled: true, selected: [...RANDOM_TRAITS.shotDistances] },
-    companion: { enabled: true, selected: [...RANDOM_TRAITS.companions] },
+    petType: { enabled: true, selected: COMPANION.types.map((t) => t.noun) },
+    petColour: { enabled: true, selected: [...COMPANION.colours] },
+    petAction: { enabled: true, selected: COMPANION.actions.map((a) => a.label) },
     bodyAngle: { enabled: true, selected: [...RANDOM_TRAITS.bodyAngles] },
     pose: { enabled: true, selected: [...RANDOM_TRAITS.poses] },
     depthOfField: { enabled: true, selected: [...RANDOM_TRAITS.depthsOfField] },
@@ -2060,16 +2335,20 @@ function Home() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 pb-20 sm:px-6 sm:py-8 lg:px-8 lg:pb-8">
-      {/* Header — editorial: title + subtitle */}
-      <div className="mb-8 flex items-end justify-between gap-4 sm:mb-12">
+    <>
+      {/* Full-screen scattered-faces intro; CTA scrolls down to #generator */}
+      <LandingHero />
+
+      <div
+        id="generator"
+        className="mx-auto max-w-7xl scroll-mt-4 px-4 py-6 pb-20 sm:px-6 sm:py-8 lg:px-8 lg:pb-8"
+      >
+      {/* Header — editorial: title */}
+      <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
         <div className="space-y-2">
           <h1 className="text-3xl tracking-tight text-foreground sm:text-4xl">
-            Profile pictures that look like real photos.
+            Profile pictures that look like real people.
           </h1>
-          <p className="text-[15px] text-body sm:text-base">
-            Realistic AI portraits via fal.ai — bring your own API key.
-          </p>
         </div>
         {/* Mobile settings button */}
         <Button
@@ -3173,7 +3452,8 @@ function Home() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
