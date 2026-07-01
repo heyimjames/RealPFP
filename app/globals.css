@@ -127,6 +127,10 @@
     body {
         @apply bg-background text-foreground antialiased;
         /* J&J: no grain / noise overlay on marketing surfaces */
+        /* Lets the full-bleed face marquee span the viewport without ever
+           producing a horizontal scrollbar. `clip` (not `hidden`) avoids
+           creating a scroll container that would break sticky positioning. */
+        overflow-x: clip;
     }
     html {
         @apply font-sans;
@@ -222,5 +226,49 @@
     .img-outline-ondark {
         outline: 1px solid rgba(255, 255, 255, 0.1);
         outline-offset: -1px;
+    }
+
+    /* ---------- Landing hero — gently floating faces ---------- */
+    /* Each scattered circle bobs on its own clock (per-element --float-dur /
+       --float-delay) so the cluster feels alive without any sync. The outer
+       wrapper owns positioning; this animates only the inner image's Y. */
+    @keyframes face-float {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-15px); }
+    }
+    .face-float {
+        animation: face-float var(--float-dur, 7s) ease-in-out var(--float-delay, 0s) infinite;
+        will-change: transform;
+        backface-visibility: hidden;
+    }
+    /* Scroll parallax: each face drifts up by scroll distance × its own --depth
+       (negative). The container publishes --scroll-y (set from JS on scroll);
+       every face inherits it and applies its own multiplier, so one variable
+       write drives the whole cluster. Layer sits between centring and the bob. */
+    .face-parallax {
+        transform: translateY(calc(var(--scroll-y, 0px) * var(--depth, 0)));
+        will-change: transform;
+    }
+    /* Hover "pick-up": the bob pauses so the circle is catchable, it lifts and
+       scales with a soft transient shadow, and the photo zooms *within* the
+       fixed circle for a touch of depth. Fine-pointer only — no stuck states on
+       touch. The lift/zoom live on nested elements so they never fight the bob. */
+    @media (hover: hover) and (pointer: fine) {
+        .face-spot:hover {
+            z-index: 5;
+        }
+        .face-spot:hover .face-float {
+            animation-play-state: paused;
+        }
+        .face-spot:hover .face-lift {
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 0 14px 34px rgba(16, 15, 15, 0.18);
+        }
+    }
+    /* Vestibular safety: hold every circle still when motion is reduced. */
+    @media (prefers-reduced-motion: reduce) {
+        .face-float {
+            animation: none;
+        }
     }
 }
