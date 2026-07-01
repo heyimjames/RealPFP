@@ -1706,10 +1706,10 @@ function LandingHero() {
       </div>
 
       {/* Centred headline + CTA */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 relative z-10 flex max-w-xl flex-col items-center text-center duration-700">
-        <h1 className="text-4xl tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
+      <div className="animate-in fade-in slide-in-from-bottom-2 relative z-10 flex max-w-xl flex-col items-center text-center duration-700 lg:max-w-5xl">
+        <h1 className="text-4xl tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl lg:whitespace-nowrap">
           Profile pictures that look{" "}
-          {/* Force the line break after "look" on desktop; flows naturally on mobile */}
+          {/* Desktop: force exactly two lines (break after "look", no earlier wrap). Mobile: flows naturally. */}
           <br className="hidden lg:block" />
           like real people.
         </h1>
