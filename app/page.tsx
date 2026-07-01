@@ -1708,7 +1708,10 @@ function LandingHero() {
       {/* Centred headline + CTA */}
       <div className="animate-in fade-in slide-in-from-bottom-2 relative z-10 flex max-w-xl flex-col items-center text-center duration-700">
         <h1 className="text-4xl tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
-          Profile pictures that look like real people.
+          Profile pictures that look{" "}
+          {/* Force the line break after "look" on desktop; flows naturally on mobile */}
+          <br className="hidden lg:block" />
+          like real people.
         </h1>
         <a
           href="#generator"
