@@ -937,7 +937,7 @@ type PromptOptions = {
 
 function generateRandomPrompt(opts: PromptOptions = {}): string {
   const { params, ageRange, mode = "profile", ethnicityWeights, genderWeights, frequencies } = opts;
-  const [ageMin, ageMax] = ageRange ?? [25, 45];
+  const [ageMin, ageMax] = ageRange ?? [22, 60];
   const age = Math.floor(Math.random() * (ageMax - ageMin + 1)) + ageMin;
 
   // Independent appearance-rate roll: each content type fires at its own % and
@@ -1101,7 +1101,8 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   // list, so each kind appears at a realistic, separately-tunable rate. Glasses
   // and sunglasses are mutually exclusive (can't wear both).
   const accessoryClauses: string[] = [];
-  if (roll("glasses")) accessoryClauses.push(randomPick(GLASSES));
+  const hasGlasses = roll("glasses");
+  if (hasGlasses) accessoryClauses.push(randomPick(GLASSES));
   else if (roll("sunglasses")) accessoryClauses.push(randomPick(SUNGLASSES));
   if (roll("jewellery")) accessoryClauses.push(randomPick(JEWELLERY));
   if (roll("hats")) accessoryClauses.push(randomPick(HATS));
@@ -1109,6 +1110,32 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
     accessoryClauses.push(
       randomPick(mode === "aspirational" ? ASPIRATIONAL_MISC : MISC_ACCESSORIES)
     );
+
+  // Grooming realism (~45%), gender-appropriate: counters AI's flawless-makeup
+  // and too-perfect-beard defaults. Kept mild so it reads real in every mode.
+  const grooming =
+    gender === "woman"
+      ? randomPick([
+          "minimal, natural makeup",
+          "no makeup, bare skin",
+          "subtle, slightly uneven makeup",
+          "a light, natural face of makeup",
+        ])
+      : randomPick([
+          "light, uneven stubble",
+          "a few days of unshaven stubble",
+          "a short, slightly patchy beard",
+          "clean-shaven with a faint stubble shadow",
+        ]);
+  const groomingPart =
+    Math.random() > 0.55
+      ? `. ${grooming.charAt(0).toUpperCase()}${grooming.slice(1)}`
+      : "";
+  // Faint reflection when glasses are worn (~50%): real lenses catch light.
+  const glassesReflectionPart =
+    hasGlasses && Math.random() > 0.5
+      ? ". A faint reflection across the glasses lenses"
+      : "";
 
   // Aspirational uses subtle authenticity touches (flyaway hair, real
   // catchlight) instead of the generic flaw list, they keep it a believable
@@ -1196,7 +1223,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const anatomySuffix =
     ". Anatomically correct and naturally proportioned: a real human body with believable bone structure, shoulders, arms and hands resting in natural, relaxed positions, every limb connected and bending correctly at real joints, each hand with exactly five normally-shaped fingers, and true-to-life head-to-body and facial proportions. Keep any visible hands, fingers, arms and shoulders clean, correctly formed and correctly counted; if a hand or arm cannot be rendered cleanly, let it fall naturally out of frame or rest relaxed and partly hidden rather than showing warped, extra, missing or fused fingers or limbs, mangled hands and distorted anatomy are a dead giveaway of a fake photo";
 
-  return (framingPrefix + randomPick(templates)() + buildPart + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
+  return (framingPrefix + randomPick(templates)() + buildPart + groomingPart + glassesReflectionPart + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
@@ -1843,7 +1870,7 @@ function Home() {
   const [frequencies, setFrequencies] = useState<Record<FreqKey, number>>({
     ...FREQUENCY_DEFAULTS,
   });
-  const [ageRange, setAgeRange] = useState<[number, number]>([25, 45]);
+  const [ageRange, setAgeRange] = useState<[number, number]>([22, 60]);
   const [mode, setMode] = useState<GenerationMode>("aspirational");
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
   const [paramDrawerKey, setParamDrawerKey] = useState<string | null>(null);
