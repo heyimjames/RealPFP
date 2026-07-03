@@ -1404,7 +1404,7 @@ function FillSlider({
         e.currentTarget.releasePointerCapture(e.pointerId);
       }}
       onKeyDown={onKeyDown}
-      className="group/fill relative flex h-10 w-full cursor-ew-resize touch-none items-center justify-between overflow-hidden rounded-[5px] bg-stone px-3 outline-none select-none transition-colors fine-hover:hover:bg-[color-mix(in_srgb,var(--stone)_88%,var(--charcoal))] focus-visible:ring-2 focus-visible:ring-ring"
+      className="group/fill relative flex h-11 w-full cursor-ew-resize touch-none items-center justify-between overflow-hidden rounded-[5px] bg-stone px-3 outline-none select-none transition-colors sm:h-10 fine-hover:hover:bg-[color-mix(in_srgb,var(--stone)_88%,var(--charcoal))] focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* No width transition: the fill pins to the cursor during a drag.
           Keyboard/click steps are small enough to read as instant. */}
@@ -2293,11 +2293,11 @@ function Home() {
     paramKey: string,
     options: readonly string[]
   ) => (
-    <div className="border-t bg-muted/30 px-3 py-2 space-y-1">
-      <div className="flex gap-2 mb-1">
+    <div className="border-t bg-muted/30 px-3 py-2">
+      <div className="mb-1 flex gap-4">
         <button
           type="button"
-          className="text-xs text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
+          className="min-h-11 text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline sm:min-h-0"
           onClick={() =>
             setAiParams((prev) => ({
               ...prev,
@@ -2309,7 +2309,7 @@ function Home() {
         </button>
         <button
           type="button"
-          className="text-xs text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline"
+          className="min-h-11 text-sm text-muted-foreground underline-offset-2 fine-hover:hover:text-foreground hover:underline sm:min-h-0"
           onClick={() =>
             setAiParams((prev) => ({
               ...prev,
@@ -2323,15 +2323,15 @@ function Home() {
       {options.map((opt) => (
         <label
           key={opt}
-          className="flex items-center gap-2 cursor-pointer py-0.5"
+          className="flex min-h-11 cursor-pointer items-center gap-3 py-1"
         >
           <input
             type="checkbox"
             checked={aiParams[paramKey].selected.includes(opt)}
             onChange={() => toggleParamOption(paramKey, opt)}
-            className="h-5 w-5 rounded border-input"
+            className="h-6 w-6 shrink-0 rounded border-input sm:h-5 sm:w-5"
           />
-          <span className="text-xs">{opt}</span>
+          <span className="text-sm">{opt}</span>
         </label>
       ))}
     </div>
@@ -2562,7 +2562,7 @@ function Home() {
                     <div className="space-y-2">
                       {AI_PARAM_DEFS.map(({ key, label, desc, options }) => (
                         <div key={key} className="rounded-md border">
-                          <div className="flex items-center gap-2 p-2 sm:p-2.5">
+                          <div className="flex items-center gap-3 p-3 sm:gap-2 sm:p-2.5">
                             <input
                               type="checkbox"
                               checked={aiParams[key].enabled}
@@ -2575,11 +2575,11 @@ function Home() {
                                   },
                                 }))
                               }
-                              className="h-5 w-5 shrink-0 rounded border-input"
+                              className="h-6 w-6 shrink-0 rounded border-input sm:h-5 sm:w-5"
                             />
                             <button
                               type="button"
-                              className="flex flex-1 items-center justify-between text-left min-w-0"
+                              className="flex min-h-11 flex-1 items-center justify-between text-left min-w-0 sm:min-h-0"
                               onClick={() => {
                                 if (isMobile) {
                                   setParamDrawerKey(
@@ -3205,7 +3205,7 @@ function Home() {
                   {activeParamDef.options.map((opt) => (
                     <label
                       key={opt}
-                      className="flex items-center gap-3 rounded-md px-2 py-2.5 cursor-pointer active:bg-muted/50"
+                      className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md px-2 py-2 active:bg-muted/50"
                     >
                       <input
                         type="checkbox"
@@ -3215,9 +3215,9 @@ function Home() {
                         onChange={() =>
                           toggleParamOption(activeParamDef.key, opt)
                         }
-                        className="h-5 w-5 shrink-0 rounded border-input"
+                        className="h-6 w-6 shrink-0 rounded border-input"
                       />
-                      <span className="text-sm">{opt}</span>
+                      <span className="text-[15px]">{opt}</span>
                     </label>
                   ))}
                 </div>
