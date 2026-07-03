@@ -328,6 +328,10 @@ const RANDOM_TRAITS = {
     "one hand slightly motion-blurred",
     "a flyaway hair catching the backlight",
     "fingerprint smudge on the lens causing slight haze on one side",
+    "strong sun glare washing across one side, veiling haze lifting the shadows",
+    "subtle chromatic aberration, faint colour fringing on high-contrast edges",
+    "slight JPEG compression artifacts, faint blocky noise in the flat areas",
+    "visible sensor noise and grain in the shadows",
   ],
 };
 
