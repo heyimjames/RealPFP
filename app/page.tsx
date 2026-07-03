@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -1544,11 +1545,9 @@ function WeightControl({
   return (
     <div className="rounded-md border p-3 space-y-3">
       <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={enabled}
-          onChange={(e) => onToggle(e.target.checked)}
-          className="h-5 w-5 shrink-0 rounded border-input"
+          onCheckedChange={(checked) => onToggle(checked === true)}
         />
         <span className="min-w-0 flex-1">
           <span className="text-sm text-foreground">{title}</span>
@@ -2495,11 +2494,10 @@ function Home() {
           key={opt}
           className="flex min-h-11 cursor-pointer items-center gap-3 py-1"
         >
-          <input
-            type="checkbox"
+          <Checkbox
             checked={aiParams[paramKey].selected.includes(opt)}
-            onChange={() => toggleParamOption(paramKey, opt)}
-            className="h-6 w-6 shrink-0 rounded border-input sm:h-5 sm:w-5"
+            onCheckedChange={() => toggleParamOption(paramKey, opt)}
+            className="size-6 sm:size-5"
           />
           <span className="text-sm">{opt}</span>
         </label>
@@ -2780,19 +2778,18 @@ function Home() {
                       {AI_PARAM_DEFS.map(({ key, label, desc, options }) => (
                         <div key={key} className="rounded-md border">
                           <div className="flex items-center gap-3 p-3 sm:gap-2 sm:p-2.5">
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={aiParams[key].enabled}
-                              onChange={(e) =>
+                              onCheckedChange={(checked) =>
                                 setAiParams((prev) => ({
                                   ...prev,
                                   [key]: {
                                     ...prev[key],
-                                    enabled: e.target.checked,
+                                    enabled: checked === true,
                                   },
                                 }))
                               }
-                              className="h-6 w-6 shrink-0 rounded border-input sm:h-5 sm:w-5"
+                              className="size-6 sm:size-5"
                             />
                             <button
                               type="button"
@@ -3425,15 +3422,14 @@ function Home() {
                       key={opt}
                       className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md px-2 py-2 active:bg-muted/50"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={aiParams[activeParamDef.key].selected.includes(
                           opt
                         )}
-                        onChange={() =>
+                        onCheckedChange={() =>
                           toggleParamOption(activeParamDef.key, opt)
                         }
-                        className="h-6 w-6 shrink-0 rounded border-input"
+                        className="size-6"
                       />
                       <span className="text-[15px]">{opt}</span>
                     </label>
