@@ -91,7 +91,7 @@ const RANDOM_TRAITS = {
     "one eyebrow slightly raised, skeptical look",
     "concentrating expression, lips pressed together",
   ],
-  // Everyday/casual clothing — the base pool. Formal wear, big hoodies, etc.
+  // Everyday/casual clothing, the base pool. Formal wear, big hoodies, etc.
   // live in their own frequency-gated pools (see FORMAL_CLOTHING / HOODIES).
   clothing: [
     "a navy crewneck sweater",
@@ -123,7 +123,7 @@ const RANDOM_TRAITS = {
     "late afternoon light going orange",
     "harsh fluorescent overhead lighting",
     "backlit with sun creating a rim of light around the hair",
-    "mixed color temperature — warm tungsten indoors and cool daylight from outside",
+    "mixed color temperature, warm tungsten indoors and cool daylight from outside",
     "flat cloudy day light with no visible shadows",
     "single overhead kitchen light, unflattering angle",
     "porch light at dusk, yellowish",
@@ -169,7 +169,7 @@ const RANDOM_TRAITS = {
     "perched on a stone harbour wall, water out of focus behind",
   ],
   // Geographic settings. Kept deliberately time- and weather-neutral so the
-  // Atmosphere axis stays in charge of light and sky — a location never says
+  // Atmosphere axis stays in charge of light and sky, a location never says
   // "sunlit" or "at dusk" itself. When the Location control is on, one of these
   // replaces the generic setting above.
   locations: [
@@ -203,7 +203,7 @@ const RANDOM_TRAITS = {
     "Three-quarter shot from the knees up, environment visible",
     "Wider environmental shot, full upper body with space around them",
   ],
-  // Pets: see the decomposed COMPANION model below — type / colour / coat /
+  // Pets: see the decomposed COMPANION model below, type / colour / coat /
   // size / action are now independent axes assembled at generation time.
   filmStyles: [
     "natural film grain, Kodak Portra 400 tones",
@@ -332,7 +332,7 @@ const RANDOM_TRAITS = {
 };
 
 // Pets the subject is holding / interacting with. Decomposed into independent
-// axes — TYPE, COLOUR, COAT, SIZE and the hold/ACTION all vary on their own —
+// axes, TYPE, COLOUR, COAT, SIZE and the hold/ACTION all vary on their own
 // so results never repeat the same canned phrase. `type` carries its species,
 // so a dog is never coloured like a cat, and `patterned` types (tabby, calico…)
 // already encode colour, so the colour axis is skipped for them.
@@ -424,7 +424,7 @@ function buildCompanion(
 }
 
 // Expressions that read as overtly happy. Suppressed when an atmosphere has
-// allowJoy: false — you don't grin through a thunderstorm.
+// allowJoy: false, you don't grin through a thunderstorm.
 const JOYFUL_EXPRESSIONS = new Set<string>([
   "warm smile showing teeth",
   "slight closed-mouth smile",
@@ -438,12 +438,12 @@ const JOYFUL_EXPRESSIONS = new Set<string>([
 
 // Time of day + weather + sky, bundled so they can never contradict each other
 // (no "stormy golden hour"). Each entry also owns the matching `lighting`.
-//   profileSafe  — appears in Profile mode (only pleasant weather does).
-//   allowJoy     — joyful expressions allowed (false for dramatic weather).
-//   outdoor      — scene is outside (gates the Location axis).
-//   settingOverride — dramatic weather forces a sheltered backdrop so the
+//   profileSafe , appears in Profile mode (only pleasant weather does).
+//   allowJoy    , joyful expressions allowed (false for dramatic weather).
+//   outdoor     , scene is outside (gates the Location axis).
+//   settingOverride, dramatic weather forces a sheltered backdrop so the
 //                     person isn't implausibly out in it.
-//   aspFavored   — the most flattering light; Aspirational mode biases to these.
+//   aspFavored  , the most flattering light; Aspirational mode biases to these.
 type Atmosphere = {
   label: string;
   phrase: string;
@@ -456,7 +456,7 @@ type Atmosphere = {
 };
 
 const ATMOSPHERES: Atmosphere[] = [
-  // — Pleasant: available everywhere —
+  // Pleasant: available everywhere
   { label: "Golden hour", phrase: "golden hour, clear sky", lighting: "warm golden-hour sunlight from the side, soft and low", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
   { label: "Bright clear midday", phrase: "clear blue sky, midday", lighting: "bright midday sun, clear sky, crisp natural shadows", profileSafe: true, allowJoy: true, outdoor: true },
   { label: "Soft overcast", phrase: "soft overcast, mild", lighting: "soft overcast daylight, no hard shadows", profileSafe: true, allowJoy: true, outdoor: true, aspFavored: true },
@@ -469,12 +469,12 @@ const ATMOSPHERES: Atmosphere[] = [
   { label: "Window light indoors", phrase: "daytime, by a window", lighting: "natural window light from the side, one side of the face softly darker", profileSafe: true, allowJoy: true, outdoor: false, aspFavored: true },
   { label: "Sunlit indoors", phrase: "daytime, indoors", lighting: "soft daylight through a window, warm indoor tones, slightly uneven exposure", profileSafe: true, allowJoy: true, outdoor: false },
   { label: "Warm lamplit evening", phrase: "evening, indoors", lighting: "warm lamp light indoors in the evening", profileSafe: true, allowJoy: true, outdoor: false, aspFavored: true },
-  // — Dramatic: Candid mode only, joy suppressed, sheltered backdrop —
-  { label: "Overcast drizzle — candid only", phrase: "grey, light drizzle", lighting: "flat grey light from a drizzly overcast sky", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "sheltering under an awning, light rain falling behind them" },
-  { label: "Heavy rain — candid only", phrase: "wet, heavy rain", lighting: "dim flat light, heavy rain streaking past", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "standing in a doorway out of the rain, wet street behind" },
-  { label: "Thunderstorm — candid only", phrase: "dark storm outside", lighting: "dark stormy light, heavy clouds, low and moody", profileSafe: false, allowJoy: false, outdoor: false, settingOverride: "indoors at a window, rain lashing the glass, storm outside" },
-  { label: "Thick fog — candid only", phrase: "thick fog, low visibility", lighting: "diffuse grey light in thick fog, very low contrast", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "on a foggy street, shapes dissolving into grey behind them" },
-  { label: "Cold winter dusk — candid only", phrase: "overcast, cold dusk", lighting: "cold dim blue-grey winter dusk light", profileSafe: false, allowJoy: false, outdoor: true },
+  // Dramatic: Candid mode only, joy suppressed, sheltered backdrop
+  { label: "Overcast drizzle, candid only", phrase: "grey, light drizzle", lighting: "flat grey light from a drizzly overcast sky", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "sheltering under an awning, light rain falling behind them" },
+  { label: "Heavy rain, candid only", phrase: "wet, heavy rain", lighting: "dim flat light, heavy rain streaking past", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "standing in a doorway out of the rain, wet street behind" },
+  { label: "Thunderstorm, candid only", phrase: "dark storm outside", lighting: "dark stormy light, heavy clouds, low and moody", profileSafe: false, allowJoy: false, outdoor: false, settingOverride: "indoors at a window, rain lashing the glass, storm outside" },
+  { label: "Thick fog, candid only", phrase: "thick fog, low visibility", lighting: "diffuse grey light in thick fog, very low contrast", profileSafe: false, allowJoy: false, outdoor: true, settingOverride: "on a foggy street, shapes dissolving into grey behind them" },
+  { label: "Cold winter dusk, candid only", phrase: "overcast, cold dusk", lighting: "cold dim blue-grey winter dusk light", profileSafe: false, allowJoy: false, outdoor: true },
 ];
 
 // ---- Frequency-gated content pools ----
@@ -554,7 +554,7 @@ const MISC_ACCESSORIES = [
   "a 35mm camera held casually at chest level",
 ];
 
-// Appearance frequencies (% of photos). Realistic, independent defaults — each
+// Appearance frequencies (% of photos). Realistic, independent defaults, each
 // is its own probability, NOT a share of a whole. Surfaced as fill-sliders.
 type FreqKey =
   | "namedLocation" | "glasses" | "sunglasses" | "jewellery" | "hats"
@@ -589,7 +589,7 @@ const FREQUENCY_DEFAULTS: Record<FreqKey, number> = {
   onPhone: 4,
 };
 
-// Default ethnicity weights — a Western/English-internet skew (a starting point
+// Default ethnicity weights, a Western/English-internet skew (a starting point
 // the user re-dials with the sliders). Relative weights, normalised at pick.
 const ETHNICITY_DEFAULT_WEIGHTS: Record<string, number> = {
   White: 55, Black: 13,
@@ -610,7 +610,7 @@ const AI_PARAM_DEFS = [
   {
     key: "location",
     label: "Location / country",
-    desc: "Swap the generic backdrop for a real place — Lisbon, Tokyo, NYC…",
+    desc: "Swap the generic backdrop for a real place, Lisbon, Tokyo, NYC…",
     options: RANDOM_TRAITS.locations,
   },
   {
@@ -640,7 +640,7 @@ const AI_PARAM_DEFS = [
   {
     key: "petAction",
     label: "Pet pose",
-    desc: "How the pet is held or interacting — cradled, on the lap, leaning in…",
+    desc: "How the pet is held or interacting, cradled, on the lap, leaning in…",
     options: COMPANION.actions.map((a) => a.label),
   },
   {
@@ -685,14 +685,14 @@ function randomPick<T>(arr: T[]): T {
 // colour). This inserts the colour after any leading article, and drops it
 // entirely for bald/shaved styles.
 function hairPhrase(color: string, style: string): string {
-  if (/\b(bald|shaved)\b/i.test(style)) return style; // "a bald head" — no colour
+  if (/\b(bald|shaved)\b/i.test(style)) return style; // "a bald head", no colour
   const m = style.match(/^(an?|the)\s+(.*)$/i);
   if (m) return `${m[1]} ${color} ${m[2]}`; // "a" + colour + "pixie cut"
   return `${color} ${style}`; // "dark brown short hair"
 }
 
 // Weighted random selection. Each key's chance is its weight ÷ the sum of all
-// weights, so the numbers act as relative proportions, not absolutes — a 60/40
+// weights, so the numbers act as relative proportions, not absolutes, a 60/40
 // split and a 6/4 split pick identically. Entries with weight <= 0 are skipped.
 // Returns null when nothing is eligible (all weights 0), letting the caller
 // fall back to uniform random.
@@ -711,14 +711,14 @@ function weightedPick(weights: Record<string, number>): string | null {
 }
 
 // Three points on a polish spectrum:
-//   aspirational — most polished: beautified-but-real skin, quality cameras,
+//   aspirational, most polished: beautified-but-real skin, quality cameras,
 //                  flattering bokeh and light. The default.
-//   profile      — flattering but realistic, phone-snapshot energy.
-//   candid       — gritty documentary; nothing filtered out.
+//   profile     , flattering but realistic, phone-snapshot energy.
+//   candid      , gritty documentary; nothing filtered out.
 type GenerationMode = "aspirational" | "profile" | "candid";
 
 // In Profile (and Aspirational) mode we filter out entries that produce
-// real-but-unflattering photos — harsh lighting, tired/distracted expressions,
+// real-but-unflattering photos, harsh lighting, tired/distracted expressions,
 // drab backdrops. In Candid mode these all stay in for the documentary feel.
 const PROFILE_MODE_EXCLUDES = {
   expressions: [
@@ -744,7 +744,7 @@ const PROFILE_MODE_EXCLUDES = {
     "moderate bokeh, 85mm f/2 lens",
     "slight background softness, shot on 50mm f/2.8",
   ],
-  // Profile pics live close to the face — drop the loosest crops so a PFP never
+  // Profile pics live close to the face, drop the loosest crops so a PFP never
   // ends up as a distant full-body shot. Candid keeps the full range.
   shotDistances: [
     "Three-quarter shot from the knees up, environment visible",
@@ -753,7 +753,7 @@ const PROFILE_MODE_EXCLUDES = {
 } as const;
 
 // Aspirational mode is stricter than Profile about drab backdrops and flat
-// phone-camera light, but LESS strict about depth of field — flattering bokeh
+// phone-camera light, but LESS strict about depth of field, flattering bokeh
 // is desirable here, so the DoF exclusions are lifted.
 const ASPIRATIONAL_EXTRA_EXCLUDES: Partial<
   Record<keyof typeof PROFILE_MODE_EXCLUDES, readonly string[]>
@@ -790,7 +790,7 @@ const ASPIRATIONAL_DOF = [
   "35mm f/1.8 with gentle background blur",
 ];
 // When Aspirational does show a skin note, keep it flattering, never a flaw.
-// Phrased toward real, matte, textured skin — not "radiant/glow" beauty-filter
+// Phrased toward real, matte, textured skin, not "radiant/glow" beauty-filter
 // language, which on this model triggers the waxy, over-smoothed AI look.
 const ASPIRATIONAL_SKIN = [
   "light freckles across the nose and cheeks",
@@ -802,7 +802,7 @@ const ASPIRATIONAL_SKIN = [
 ];
 // Subtle authenticity touches for Aspirational. A flawless, perfectly clean
 // frame reads as stock/AI; these keep it a believable real photograph WITHOUT
-// being unflattering — natural, not flaws.
+// being unflattering, natural, not flaws.
 const ASPIRATIONAL_REALISM = [
   "a few natural flyaway hairs catching the light",
   "a single realistic catchlight in the eyes from one light source",
@@ -845,7 +845,7 @@ const ASPIRATIONAL_MISC = [
   "a fine knit scarf draped at the neck",
   "over-ear headphones resting loose around the neck",
 ];
-// Options that read as awkward, fidgety, or unposed-documentary — fine for
+// Options that read as awkward, fidgety, or unposed-documentary, fine for
 // Profile/Candid realism, but they undercut a polished Aspirational portrait.
 // Filtered from the relevant pools only when mode === "aspirational".
 const ASPIRATIONAL_POOL_EXCLUDES: Record<string, readonly string[]> = {
@@ -869,7 +869,7 @@ function applyModeFilter<K extends keyof typeof PROFILE_MODE_EXCLUDES>(
   if (mode === "candid") return [...list];
   const excludes = new Set<string>(PROFILE_MODE_EXCLUDES[category]);
   if (mode === "aspirational") {
-    // Flattering bokeh is wanted here — don't strip depth of field.
+    // Flattering bokeh is wanted here, don't strip depth of field.
     if (category === "depthsOfField") excludes.clear();
     ASPIRATIONAL_EXTRA_EXCLUDES[category]?.forEach((e) => excludes.add(e));
   }
@@ -915,7 +915,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const hair = hairPhrase(hairColor, hairStyle);
 
   // Clothing: formal wear and big hoodies are injected at their own rates;
-  // otherwise the base pool — elevated smart-casual for Aspirational, everyday
+  // otherwise the base pool, elevated smart-casual for Aspirational, everyday
   // casual for Profile/Candid.
   const baseClothing =
     mode === "aspirational" ? ASPIRATIONAL_CLOTHING : RANDOM_TRAITS.clothing;
@@ -957,7 +957,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   // When on, it OWNS the lighting (and, for dramatic weather, the setting).
   let atmosphere: Atmosphere | null = null;
   if (!params || params.atmosphere?.enabled) {
-    // Profile/Aspirational only ever see pleasant weather — no happy-in-a-storm.
+    // Profile/Aspirational only ever see pleasant weather, no happy-in-a-storm.
     let pool = ATMOSPHERES.filter((a) => mode === "candid" || a.profileSafe);
     const selected = params?.atmosphere?.selected;
     if (selected?.length) {
@@ -966,7 +966,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       if (narrowed.length) pool = narrowed;
     }
     // Aspirational biases toward the most flattering light within whatever's
-    // allowed (soft, golden, window) — applied after user narrowing so an
+    // allowed (soft, golden, window), applied after user narrowing so an
     // explicit selection still wins.
     if (mode === "aspirational") {
       const favored = pool.filter((a) => a.aspFavored);
@@ -1008,7 +1008,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const shotDistance = pickControlled("shotDistance", RANDOM_TRAITS.shotDistances, "shotDistances");
   const bodyAngle = pickControlled("bodyAngle", RANDOM_TRAITS.bodyAngles);
   // Pose: occasionally on the phone (at its own rate), otherwise the usual pool.
-  // Aspirational never shows the phone — it reads too casual for a polished
+  // Aspirational never shows the phone, it reads too casual for a polished
   // portrait, regardless of the on-phone frequency.
   const pose =
     mode !== "aspirational" && roll("onPhone")
@@ -1035,7 +1035,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       : pickControlled("cameraType", RANDOM_TRAITS.cameraTypes);
 
   // Pets: at their own rate, never on an extreme face-only crop (the animal
-  // couldn't be seen), and never in Aspirational — a pet reads too casual for a
+  // couldn't be seen), and never in Aspirational, a pet reads too casual for a
   // polished professional portrait.
   const tooTightForPet = !!shotDistance?.startsWith("Extreme close-up");
   const companion =
@@ -1064,7 +1064,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
     );
 
   // Aspirational uses subtle authenticity touches (flyaway hair, real
-  // catchlight) instead of the generic flaw list — they keep it a believable
+  // catchlight) instead of the generic flaw list, they keep it a believable
   // real photo without being unflattering.
   const imperfection =
     mode === "aspirational"
@@ -1080,7 +1080,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
   const accessoryPart = accessoryClauses.length ? `, ${accessoryClauses.join(", ")}` : "";
   const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
-  // Film-style references heavily steer toward graded/cinematic looks — the
+  // Film-style references heavily steer toward graded/cinematic looks, the
   // biggest single AI-tell after smooth skin. Profile mode uses them sparingly;
   // Aspirational leans into a tasteful editorial grade a bit more.
   const filmThreshold = mode === "aspirational" ? 0.5 : mode === "profile" ? 0.65 : 0.15;
@@ -1114,24 +1114,24 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   let qualitySuffix = "";
   if (mode === "profile") {
     qualitySuffix =
-      ". Real matte skin showing visible pores, fine lines, natural blemishes and a slightly asymmetric face. Ordinary uneven lighting and exposure, true-to-life muted color with a neutral white balance. Background mostly in sharp focus, deep depth of field, everything roughly equally sharp. Off-center, casually-framed composition with the subject not perfectly centered. Looks like an ordinary phone snapshot a friend took. Keep skin texture real and unretouched — not airbrushed, not AI-smooth, no creamy background blur";
+      ". Real matte skin showing visible pores, fine lines, natural blemishes and a slightly asymmetric face. Ordinary uneven lighting and exposure, true-to-life muted color with a neutral white balance. Background mostly in sharp focus, deep depth of field, everything roughly equally sharp. Off-center, casually-framed composition with the subject not perfectly centered. Looks like an ordinary phone snapshot a friend took. Keep skin texture real and unretouched, not airbrushed, not AI-smooth, no creamy background blur";
   } else if (mode === "aspirational") {
-    // Beautified BUT real — the hard part. We explicitly forbid the plastic,
+    // Beautified BUT real, the hard part. We explicitly forbid the plastic,
     // waxy, over-smoothed AI look while asking for a flattering light retouch,
     // so it reads as a great real photo rather than an obvious AI render.
     qualitySuffix =
-      ". A real, authentic photograph of a real person, genuinely shot on a real camera in a real place — candid, believable and editorial-quality, the kind of photo you'd be proud to use professionally. Real human skin with a light, tasteful retouch: healthy and even, yet keeping its natural pores, fine vellus hairs, faint texture and tiny real-world irregularities clearly visible up close, with a soft matte finish and subtle shine only on the nose and forehead. Flattering soft directional light that shapes the face, with a single realistic catchlight in the eyes and gentle natural shadow on one side. True-to-life, slightly muted color with a neutral white balance. A relaxed, composed, slightly asymmetric expression. Clean, intentional composition with a natural shallow depth of field at about f/2 that gently separates the subject from the background. Keep it a genuine photograph — real skin texture, not plastic, waxy, over-airbrushed or AI-smooth, and not a glossy stock photo or 3D render";
+      ". A real, authentic photograph of a real person, genuinely shot on a real camera in a real place, candid, believable and editorial-quality, the kind of photo you'd be proud to use professionally. Real human skin with a light, tasteful retouch: healthy and even, yet keeping its natural pores, fine vellus hairs, faint texture and tiny real-world irregularities clearly visible up close, with a soft matte finish and subtle shine only on the nose and forehead. Flattering soft directional light that shapes the face, with a single realistic catchlight in the eyes and gentle natural shadow on one side. True-to-life, slightly muted color with a neutral white balance. A relaxed, composed, slightly asymmetric expression. Clean, intentional composition with a natural shallow depth of field at about f/2 that gently separates the subject from the background. Keep it a genuine photograph, real skin texture, not plastic, waxy, over-airbrushed or AI-smooth, and not a glossy stock photo or 3D render";
   }
   const noBorderSuffix =
     ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
 
   // Text & logos: garbled lettering and mangled logos are among the strongest
   // AI giveaways. Demand any incidental text/signage/branding be rendered
-  // perfectly — correctly spelled, cleanly formed, accurate proportions — and
+  // perfectly, correctly spelled, cleanly formed, accurate proportions, and
   // tell the model it is better to omit text or a logo entirely than to render
   // it badly. Applies in both modes.
   const textAndLogoSuffix =
-    ". Any text, signage, or branding in the scene must be rendered with extra care: correctly spelled real words, cleanly formed and legible letterforms, no garbled, warped, or nonsensical text. Real brand names and logos are allowed only if reproduced accurately with correct shapes, proportions, and colors; if a logo or piece of text cannot be rendered cleanly and correctly, leave it out or keep it blurred and out of focus rather than showing a malformed version — badly rendered text and logos are a dead giveaway of a fake photo";
+    ". Any text, signage, or branding in the scene must be rendered with extra care: correctly spelled real words, cleanly formed and legible letterforms, no garbled, warped, or nonsensical text. Real brand names and logos are allowed only if reproduced accurately with correct shapes, proportions, and colors; if a logo or piece of text cannot be rendered cleanly and correctly, leave it out or keep it blurred and out of focus rather than showing a malformed version, badly rendered text and logos are a dead giveaway of a fake photo";
 
   // Anatomy: distorted limbs and hands are the single strongest AI giveaway
   // after skin, and crossed-arm / hand-near-face poses are where the model
@@ -1140,7 +1140,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   // the same "hide it rather than mangle it" fallback used for text. Applies in
   // every mode.
   const anatomySuffix =
-    ". Anatomically correct and naturally proportioned: a real human body with believable bone structure, shoulders, arms and hands resting in natural, relaxed positions, every limb connected and bending correctly at real joints, each hand with exactly five normally-shaped fingers, and true-to-life head-to-body and facial proportions. Keep any visible hands, fingers, arms and shoulders clean, correctly formed and correctly counted; if a hand or arm cannot be rendered cleanly, let it fall naturally out of frame or rest relaxed and partly hidden rather than showing warped, extra, missing or fused fingers or limbs — mangled hands and distorted anatomy are a dead giveaway of a fake photo";
+    ". Anatomically correct and naturally proportioned: a real human body with believable bone structure, shoulders, arms and hands resting in natural, relaxed positions, every limb connected and bending correctly at real joints, each hand with exactly five normally-shaped fingers, and true-to-life head-to-body and facial proportions. Keep any visible hands, fingers, arms and shoulders clean, correctly formed and correctly counted; if a hand or arm cannot be rendered cleanly, let it fall naturally out of frame or rest relaxed and partly hidden rather than showing warped, extra, missing or fused fingers or limbs, mangled hands and distorted anatomy are a dead giveaway of a fake photo";
 
   return (framingPrefix + randomPick(templates)() + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
     .replace(/\s{2,}/g, " ")
@@ -1315,7 +1315,7 @@ function SettingsContent({
         />
         <p className="text-sm text-muted-foreground">
           Same seed + same prompt = same image.{" "}
-          <span className="cursor-help underline decoration-dotted" title="A seed is a number that controls the randomness of generation. Leave blank for a random result each time. Set a specific number (e.g. 42) to get the exact same image when using the same prompt — useful for tweaking a prompt while keeping the same face.">
+          <span className="cursor-help underline decoration-dotted" title="A seed is a number that controls the randomness of generation. Leave blank for a random result each time. Set a specific number (e.g. 42) to get the exact same image when using the same prompt, useful for tweaking a prompt while keeping the same face.">
             How does this work?
           </span>
         </p>
@@ -1592,7 +1592,7 @@ const SAMPLE_FACES = [
 ];
 
 /* ─────────────────────────────────────────────────────────
- * LANDING HERO — full-screen scattered face preview + CTA
+ * LANDING HERO, full-screen scattered face preview + CTA
  *
  *   Large sample faces are hand-scattered around generous
  *   whitespace; the headline + button sit centred on top. The
@@ -1604,7 +1604,7 @@ const SAMPLE_FACES = [
  *   • Decorative: faces are aria-hidden; motion respects
  *     prefers-reduced-motion (see .face-float in globals.css).
  * ───────────────────────────────────────────────────────── */
-// Hand-placed scatter — percentages locate each circle's CENTRE. `s` scales the
+// Hand-placed scatter, percentages locate each circle's CENTRE. `s` scales the
 // shared base diameter (--face-d); the denser inner circles are hidden on small
 // screens so the centred copy keeps its breathing room.
 type FaceSpot = {
@@ -1615,7 +1615,7 @@ type FaceSpot = {
   mobile?: boolean;
 };
 const FACE_SPOTS: FaceSpot[] = [
-  // Mobile-visible six (faces 0–5) — kept inset (15–85%) so they stay fully round
+  // Mobile-visible six (faces 0–5), kept inset (15–85%) so they stay fully round
   // and never clip into slivers at a phone-width edge; they frame the copy.
   { face: 0, left: 50, top: 11, s: 0.9, mobile: true },
   { face: 1, left: 16, top: 20, s: 1.0, mobile: true },
@@ -1623,7 +1623,7 @@ const FACE_SPOTS: FaceSpot[] = [
   { face: 3, left: 17, top: 80, s: 0.85, mobile: true },
   { face: 4, left: 83, top: 79, s: 0.95, mobile: true },
   { face: 5, left: 50, top: 90, s: 0.8, mobile: true },
-  // Desktop-only (faces 6–13) — inset enough that the full circle always clears
+  // Desktop-only (faces 6–13), inset enough that the full circle always clears
   // the edge (no half-moon clipping); the viewport is wide so they sit outward.
   { face: 6, left: 8, top: 49, s: 1.2 },
   { face: 7, left: 31, top: 33, s: 0.7 },
@@ -1662,7 +1662,7 @@ function LandingHero() {
 
   return (
     <section className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden px-6 [--face-d:clamp(76px,11vmin,150px)]">
-      {/* Scattered floating faces — decorative preview of real generations */}
+      {/* Scattered floating faces, decorative preview of real generations */}
       <div
         ref={facesRef}
         aria-hidden="true"
@@ -1785,7 +1785,7 @@ function Home() {
     woman: 50,
     man: 50,
   });
-  // Appearance frequencies (% per content type) — always applied; realistic defaults.
+  // Appearance frequencies (% per content type), always applied; realistic defaults.
   const [frequencies, setFrequencies] = useState<Record<FreqKey, number>>({
     ...FREQUENCY_DEFAULTS,
   });
@@ -1807,7 +1807,7 @@ function Home() {
     null
   );
   const [lightboxVisible, setLightboxVisible] = useState(false);
-  // Prompt disclosure inside the lightbox — collapsed by default so the image
+  // Prompt disclosure inside the lightbox, collapsed by default so the image
   // is the hero; the prompt is power-user info revealed on demand.
   const [promptExpanded, setPromptExpanded] = useState(false);
 
@@ -1894,7 +1894,7 @@ function Home() {
     setHydrated(true);
   }, []);
 
-  // Persist images to localStorage — only after hydration, so we never write
+  // Persist images to localStorage, only after hydration, so we never write
   // the initial empty array over restored data.
   useEffect(() => {
     if (!hydrated) return;
@@ -1903,7 +1903,7 @@ function Home() {
     } catch {}
   }, [hydrated, images]);
 
-  // Persist saved images to localStorage — same hydration guard.
+  // Persist saved images to localStorage, same hydration guard.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -2346,7 +2346,7 @@ function Home() {
         id="generator"
         className="mx-auto max-w-7xl scroll-mt-4 px-4 py-6 pb-20 sm:px-6 sm:py-8 lg:px-8 lg:pb-8"
       >
-      {/* Header — editorial: title */}
+      {/* Header, editorial: title */}
       <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
         <div className="space-y-2">
           <h1 className="text-3xl tracking-tight text-foreground sm:text-4xl">
@@ -2472,17 +2472,17 @@ function Home() {
                           {
                             key: "aspirational",
                             title: "Aspirational",
-                            desc: "Polished, professional, beautified-but-real — the most flattering look.",
+                            desc: "Polished, professional, beautified-but-real, the most flattering look.",
                           },
                           {
                             key: "profile",
                             title: "Profile picture",
-                            desc: "Flattering but real, phone-snapshot energy — the photo you'd actually post.",
+                            desc: "Flattering but real, phone-snapshot energy, the photo you'd actually post.",
                           },
                           {
                             key: "candid",
                             title: "Authentic candid",
-                            desc: "Harsh light, tired faces, mundane spots — full documentary feel.",
+                            desc: "Harsh light, tired faces, mundane spots, full documentary feel.",
                           },
                         ] as const).map(({ key, title, desc }) => (
                           <button
@@ -3066,7 +3066,7 @@ function Home() {
         </div>
       </div>
 
-      {/* Footer — credit + source link */}
+      {/* Footer, credit + source link */}
       <footer className="mt-12 flex items-center justify-between gap-4 border-t border-stone pt-6 pb-2 sm:mt-16 sm:pt-8">
         <p className="meta-label">
           Made by{" "}
@@ -3352,7 +3352,7 @@ function Home() {
             className="absolute inset-0 bg-black/80 motion-safe:transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]"
             style={{ opacity: lightboxVisible ? 1 : 0 }}
           />
-          {/* Close — fixed to the viewport so it's always reachable */}
+          {/* Close, fixed to the viewport so it's always reachable */}
           <button
             onClick={closeLightbox}
             aria-label="Close"
