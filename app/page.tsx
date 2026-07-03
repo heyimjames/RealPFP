@@ -1659,6 +1659,61 @@ function FrequencyControl({
   );
 }
 
+// A collapsible group used to fold the long Options panel into scannable
+// sections. Header is a full-width 44px-tall toggle; the body animates open via
+// the grid 0fr→1fr trick (interruptible, one specific property, no `all`).
+function CollapsibleSection({
+  id,
+  title,
+  meta,
+  open,
+  onToggle,
+  children,
+}: {
+  id: string;
+  title: string;
+  meta?: React.ReactNode;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div id={id} className="scroll-mt-16">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md py-1 text-left transition-opacity fine-hover:hover:opacity-70"
+      >
+        <span className="meta-label">{title}</span>
+        <span className="flex shrink-0 items-center gap-2">
+          {meta != null && (
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {meta}
+            </span>
+          )}
+          <ChevronDownIcon
+            className={`size-4 text-muted-foreground motion-safe:transition-transform duration-200 ease-out ${
+              open ? "" : "-rotate-90"
+            }`}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+        </span>
+      </button>
+      <div
+        className={`grid motion-safe:transition-[grid-template-rows] duration-300 ease-out ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="space-y-3 pt-1">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Landing hero ----------
 // A sample of real generations (stored in /public/faces) shown large and
 // scattered around the headline + CTA, previewing the variety the generator
@@ -1885,6 +1940,29 @@ function Home() {
   const [mode, setMode] = useState<GenerationMode>("aspirational");
   const [expandedParam, setExpandedParam] = useState<string | null>(null);
   const [paramDrawerKey, setParamDrawerKey] = useState<string | null>(null);
+
+  // Options-panel collapsible sections (all open by default; purely additive).
+  const OPTION_SECTIONS = [
+    ["opt-mode", "Mode"],
+    ["opt-age", "Age"],
+    ["opt-people", "People"],
+    ["opt-appearance", "Appearance"],
+    ["opt-photography", "Photos"],
+  ] as const;
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(OPTION_SECTIONS.map(([id]) => [id, true]))
+  );
+  const toggleSection = (id: string) =>
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  const allSectionsOpen = OPTION_SECTIONS.every(([id]) => openSections[id]);
+  const setAllSections = (open: boolean) =>
+    setOpenSections(Object.fromEntries(OPTION_SECTIONS.map(([id]) => [id, open])));
+  const jumpToSection = (id: string) => {
+    setOpenSections((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // Saved library state
   const [savedImages, setSavedImages] = useState<GeneratedImage[]>([]);
@@ -2556,34 +2634,34 @@ function Home() {
 
                 {/* Options Tab */}
                 <TabsContent value="options" className="space-y-4">
-                  {/* Sticky jump-nav so the long Options panel is navigable */}
-                  <div className="sticky top-0 z-20 -mt-1 flex gap-1.5 overflow-x-auto rounded-md bg-card/90 py-1.5 backdrop-blur">
-                    {(
-                      [
-                        ["opt-mode", "Mode"],
-                        ["opt-age", "Age"],
-                        ["opt-people", "People"],
-                        ["opt-appearance", "Appearance"],
-                        ["opt-photography", "Photos"],
-                      ] as const
-                    ).map(([id, label]) => (
+                  {/* Sticky jump-nav so the long Options panel is navigable.
+                      A chip expands its section (if collapsed) and scrolls to it. */}
+                  <div className="sticky top-0 z-20 -mt-1 flex items-center gap-1.5 overflow-x-auto rounded-md bg-card/90 py-1.5 backdrop-blur">
+                    {OPTION_SECTIONS.map(([id, label]) => (
                       <button
                         key={id}
                         type="button"
-                        onClick={() =>
-                          document
-                            .getElementById(id)
-                            ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                        }
+                        onClick={() => jumpToSection(id)}
                         className="shrink-0 rounded-full bg-paper-3 px-3 py-1.5 text-xs text-body transition-colors fine-hover:hover:bg-stone"
                       >
                         {label}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => setAllSections(!allSectionsOpen)}
+                      className="ml-auto shrink-0 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors fine-hover:hover:text-foreground"
+                    >
+                      {allSectionsOpen ? "Collapse all" : "Expand all"}
+                    </button>
                   </div>
                   <div className="space-y-3">
-                    <div id="opt-mode" className="scroll-mt-16 space-y-2">
-                      <span className="meta-label">Mode</span>
+                    <CollapsibleSection
+                      id="opt-mode"
+                      title="Mode"
+                      open={openSections["opt-mode"]}
+                      onToggle={() => toggleSection("opt-mode")}
+                    >
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                         {([
                           {
@@ -2622,26 +2700,33 @@ function Home() {
                           </button>
                         ))}
                       </div>
-                    </div>
-                    <div id="opt-age" className="scroll-mt-16 rounded-md border p-3 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="meta-label">Age range</span>
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          {ageRange[0]} – {ageRange[1]}
-                        </span>
+                    </CollapsibleSection>
+                    <CollapsibleSection
+                      id="opt-age"
+                      title="Age range"
+                      meta={`${ageRange[0]} – ${ageRange[1]}`}
+                      open={openSections["opt-age"]}
+                      onToggle={() => toggleSection("opt-age")}
+                    >
+                      <div className="rounded-md border p-3">
+                        <Slider
+                          min={18}
+                          max={75}
+                          step={1}
+                          value={ageRange}
+                          onValueChange={(v) =>
+                            Array.isArray(v) && v.length === 2 &&
+                            setAgeRange([v[0] as number, v[1] as number])
+                          }
+                        />
                       </div>
-                      <Slider
-                        min={18}
-                        max={75}
-                        step={1}
-                        value={ageRange}
-                        onValueChange={(v) =>
-                          Array.isArray(v) && v.length === 2 &&
-                          setAgeRange([v[0] as number, v[1] as number])
-                        }
-                      />
-                    </div>
-                    <div id="opt-people" className="scroll-mt-16 space-y-3">
+                    </CollapsibleSection>
+                    <CollapsibleSection
+                      id="opt-people"
+                      title="People"
+                      open={openSections["opt-people"]}
+                      onToggle={() => toggleSection("opt-people")}
+                    >
                       <WeightControl
                         title="Ethnicity distribution"
                         description="Drag each share; set to 0 to exclude. Off = even random mix."
@@ -2660,16 +2745,27 @@ function Home() {
                         defaults={{ woman: 50, man: 50 }}
                         onChange={setGenderWeights}
                       />
-                    </div>
-                    <div id="opt-appearance" className="scroll-mt-16">
+                    </CollapsibleSection>
+                    <CollapsibleSection
+                      id="opt-appearance"
+                      title="Appearance"
+                      open={openSections["opt-appearance"]}
+                      onToggle={() => toggleSection("opt-appearance")}
+                    >
                       <FrequencyControl
                         defs={FREQUENCY_DEFS}
                         values={frequencies}
                         defaults={FREQUENCY_DEFAULTS}
                         onChange={setFrequencies}
                       />
-                    </div>
-                    <span id="opt-photography" className="meta-label scroll-mt-16 pt-2">Photography parameters</span>
+                    </CollapsibleSection>
+                    <CollapsibleSection
+                      id="opt-photography"
+                      title="Photography parameters"
+                      meta={`${AI_PARAM_DEFS.filter((d) => aiParams[d.key].enabled).length}/${AI_PARAM_DEFS.length} params`}
+                      open={openSections["opt-photography"]}
+                      onToggle={() => toggleSection("opt-photography")}
+                    >
                     <p className="text-xs text-body-muted">
                       Control which traits are included in randomly generated prompts.
                       {" "}
@@ -2742,6 +2838,7 @@ function Home() {
                         </div>
                       ))}
                     </div>
+                    </CollapsibleSection>
                   </div>
                 </TabsContent>
 
