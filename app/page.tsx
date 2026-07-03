@@ -191,6 +191,23 @@ const RANDOM_TRAITS = {
     "in a Mumbai street scene, colour and motion blurred behind",
     "on a Scottish Highlands hillside, heather and stone behind",
     "in a Copenhagen square, cyclists blurred behind",
+    "on a Cape Town street, Table Mountain hazy behind",
+    "in a Lagos market, bright fabric stalls behind",
+    "on a Nairobi street, matatus and shopfronts blurred behind",
+    "in a Cairo street, weathered stone buildings behind",
+    "on a Bangkok side street, tuk-tuks and signage behind",
+    "in a Singapore hawker centre, stalls and steam behind",
+    "on a Hong Kong street, dense neon signage overhead behind",
+    "in a Jaipur old-city lane, pink sandstone walls behind",
+    "in a Kyoto backstreet, wooden machiya houses behind",
+    "on a São Paulo street, dense apartment blocks behind",
+    "in a Buenos Aires café, tiled floor and old woodwork behind",
+    "on a Los Angeles boulevard, palm trees and low buildings behind",
+    "in a Chicago street, brick and an elevated train track behind",
+    "on a Reykjavik street, corrugated-metal houses behind",
+    "on a Melbourne laneway, street art behind",
+    "on a country lane, dry-stone walls and open fields behind",
+    "in a small coastal fishing village, boats behind",
   ],
   // How far the subject sits from the camera. Becomes the framing prefix and
   // applies in both modes, so faces aren't all locked at the same crop.
@@ -313,6 +330,11 @@ const RANDOM_TRAITS = {
     "fine vellus hairs catching the light along the jaw and cheek",
     "natural under-eye shadow, slightly puffy",
     "subtle shine on the nose and forehead, matte elsewhere",
+    "natural, slightly imperfect teeth, not veneered or perfectly white",
+    "a small gap between the front teeth",
+    "slightly asymmetric eyes, one a touch more open than the other",
+    "gaze a little off-camera, not dead-centre",
+    "slightly tired, faintly watery eyes",
   ],
   photoImperfections: [
     "slightly off-center framing",
@@ -338,6 +360,19 @@ const RANDOM_TRAITS = {
     "the shirt a little rumpled and creased, not freshly pressed",
     "one sleeve pushed up higher than the other",
     "a crease across the shoulder where the fabric has been folded",
+  ],
+  // Build / face-shape variety. AI defaults everyone to slim and symmetrical,
+  // which is itself a tell; real people have range. Attached at a rate in all
+  // modes (see buildPart). Fragments, no trailing period.
+  builds: [
+    "an average, everyday build",
+    "a heavier, fuller build",
+    "a soft, rounder face with fuller cheeks",
+    "a slim, lean build",
+    "a stocky, broad-shouldered frame",
+    "a softer jawline and a bit of a double chin",
+    "a lanky, thin frame",
+    "a fuller-figured build",
   ],
 };
 
@@ -588,13 +623,13 @@ const FREQUENCY_DEFS: { key: FreqKey; label: string; desc: string }[] = [
 const FREQUENCY_DEFAULTS: Record<FreqKey, number> = {
   namedLocation: 30,
   glasses: 22,
-  jewellery: 30,
+  jewellery: 22,
   miscAccessory: 18,
   formalWear: 8,
   hats: 8,
   bigHoodie: 6,
   sunglasses: 5,
-  blackAndWhite: 6,
+  blackAndWhite: 4,
   pets: 4,
   onPhone: 4,
 };
@@ -1092,6 +1127,13 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const skinPart = Math.random() > skinThreshold ? `, ${skin}` : "";
   const accessoryPart = accessoryClauses.length ? `, ${accessoryClauses.join(", ")}` : "";
   const imperfectionPart = Math.random() > imperfectionThreshold ? `. ${imperfection}` : "";
+  // Build / face-shape variety (~45% of images, all modes) so subjects aren't
+  // all slim and symmetrical, which reads as AI.
+  const build = randomPick(RANDOM_TRAITS.builds);
+  const buildPart =
+    Math.random() > 0.55
+      ? `. ${build.charAt(0).toUpperCase()}${build.slice(1)}`
+      : "";
   // Film-style references heavily steer toward graded/cinematic looks, the
   // biggest single AI-tell after smooth skin. Profile mode uses them sparingly;
   // Aspirational leans into a tasteful editorial grade a bit more.
@@ -1135,7 +1177,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
       ". A real, authentic photograph of a real person, genuinely shot on a real camera in a real place, candid, believable and editorial-quality, the kind of photo you'd be proud to use professionally. Real human skin with a light, tasteful retouch: healthy and even, yet keeping its natural pores, fine vellus hairs, faint texture and tiny real-world irregularities clearly visible up close, with a soft matte finish and subtle shine only on the nose and forehead. Flattering soft directional light that shapes the face, with a single realistic catchlight in the eyes and gentle natural shadow on one side. True-to-life, slightly muted color with a neutral white balance. A relaxed, composed, slightly asymmetric expression. Clean, intentional composition with a natural shallow depth of field at about f/2 that gently separates the subject from the background. Keep it a genuine photograph, real skin texture, not plastic, waxy, over-airbrushed or AI-smooth, and not a glossy stock photo or 3D render";
   }
   const noBorderSuffix =
-    ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges";
+    ". Full-bleed photograph, no Polaroid frame, no white border around the image, no decorative edges. Any people in the background stay soft and out of focus, never sharply detailed";
 
   // Text & logos: garbled lettering and mangled logos are among the strongest
   // AI giveaways. Demand any incidental text/signage/branding be rendered
@@ -1154,7 +1196,7 @@ function generateRandomPrompt(opts: PromptOptions = {}): string {
   const anatomySuffix =
     ". Anatomically correct and naturally proportioned: a real human body with believable bone structure, shoulders, arms and hands resting in natural, relaxed positions, every limb connected and bending correctly at real joints, each hand with exactly five normally-shaped fingers, and true-to-life head-to-body and facial proportions. Keep any visible hands, fingers, arms and shoulders clean, correctly formed and correctly counted; if a hand or arm cannot be rendered cleanly, let it fall naturally out of frame or rest relaxed and partly hidden rather than showing warped, extra, missing or fused fingers or limbs, mangled hands and distorted anatomy are a dead giveaway of a fake photo";
 
-  return (framingPrefix + randomPick(templates)() + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
+  return (framingPrefix + randomPick(templates)() + buildPart + companionPart + qualitySuffix + noBorderSuffix + textAndLogoSuffix + anatomySuffix)
     .replace(/\s{2,}/g, " ")
     .replace(/\.\s*\./g, ".")
     .replace(/,\s*\./g, ".")
