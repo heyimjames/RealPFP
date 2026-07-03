@@ -1407,11 +1407,24 @@ function SettingsContent({
           }
         />
         <p className="text-sm text-muted-foreground">
-          Same seed + same prompt = same image.{" "}
-          <span className="cursor-help underline decoration-dotted" title="A seed is a number that controls the randomness of generation. Leave blank for a random result each time. Set a specific number (e.g. 42) to get the exact same image when using the same prompt, useful for tweaking a prompt while keeping the same face.">
-            How does this work?
-          </span>
+          Same seed + same prompt = same image.
         </p>
+        <details className="group/seed text-sm text-muted-foreground">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 underline decoration-dotted underline-offset-2 transition-colors fine-hover:hover:text-foreground [&::-webkit-details-marker]:hidden">
+            How does this work?
+            <ChevronDownIcon
+              className="size-3.5 transition-transform duration-200 ease-out group-open/seed:rotate-180"
+              strokeWidth={1.75}
+              aria-hidden
+            />
+          </summary>
+          <p className="mt-1.5 text-xs leading-relaxed text-body-muted">
+            A seed is a number that controls the randomness of generation. Leave
+            it blank for a fresh random result each time. Set a specific number
+            (e.g. 42) to reproduce the exact same image with the same prompt,
+            handy for tweaking wording while keeping the same face.
+          </p>
+        </details>
       </div>
 
       <Separator />
