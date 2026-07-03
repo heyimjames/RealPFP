@@ -2556,8 +2556,33 @@ function Home() {
 
                 {/* Options Tab */}
                 <TabsContent value="options" className="space-y-4">
+                  {/* Sticky jump-nav so the long Options panel is navigable */}
+                  <div className="sticky top-0 z-20 -mt-1 flex gap-1.5 overflow-x-auto rounded-md bg-card/90 py-1.5 backdrop-blur">
+                    {(
+                      [
+                        ["opt-mode", "Mode"],
+                        ["opt-age", "Age"],
+                        ["opt-people", "People"],
+                        ["opt-appearance", "Appearance"],
+                        ["opt-photography", "Photos"],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() =>
+                          document
+                            .getElementById(id)
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        }
+                        className="shrink-0 rounded-full bg-paper-3 px-3 py-1.5 text-xs text-body transition-colors fine-hover:hover:bg-stone"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="space-y-3">
-                    <div className="space-y-2">
+                    <div id="opt-mode" className="scroll-mt-16 space-y-2">
                       <span className="meta-label">Mode</span>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                         {([
@@ -2598,7 +2623,7 @@ function Home() {
                         ))}
                       </div>
                     </div>
-                    <div className="rounded-md border p-3 space-y-3">
+                    <div id="opt-age" className="scroll-mt-16 rounded-md border p-3 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="meta-label">Age range</span>
                         <span className="text-xs text-muted-foreground tabular-nums">
@@ -2616,31 +2641,35 @@ function Home() {
                         }
                       />
                     </div>
-                    <WeightControl
-                      title="Ethnicity distribution"
-                      description="Drag each share; set to 0 to exclude. Off = even random mix."
-                      enabled={ethnicityEnabled}
-                      onToggle={setEthnicityEnabled}
-                      weights={ethnicityWeights}
-                      defaults={DEFAULT_ETHNICITY_WEIGHTS_STATE}
-                      onChange={setEthnicityWeights}
-                    />
-                    <WeightControl
-                      title="Gender distribution"
-                      description="Off = even 50/50. On = set the balance of women and men."
-                      enabled={genderEnabled}
-                      onToggle={setGenderEnabled}
-                      weights={genderWeights}
-                      defaults={{ woman: 50, man: 50 }}
-                      onChange={setGenderWeights}
-                    />
-                    <FrequencyControl
-                      defs={FREQUENCY_DEFS}
-                      values={frequencies}
-                      defaults={FREQUENCY_DEFAULTS}
-                      onChange={setFrequencies}
-                    />
-                    <span className="meta-label pt-2">Photography parameters</span>
+                    <div id="opt-people" className="scroll-mt-16 space-y-3">
+                      <WeightControl
+                        title="Ethnicity distribution"
+                        description="Drag each share; set to 0 to exclude. Off = even random mix."
+                        enabled={ethnicityEnabled}
+                        onToggle={setEthnicityEnabled}
+                        weights={ethnicityWeights}
+                        defaults={DEFAULT_ETHNICITY_WEIGHTS_STATE}
+                        onChange={setEthnicityWeights}
+                      />
+                      <WeightControl
+                        title="Gender distribution"
+                        description="Off = even 50/50. On = set the balance of women and men."
+                        enabled={genderEnabled}
+                        onToggle={setGenderEnabled}
+                        weights={genderWeights}
+                        defaults={{ woman: 50, man: 50 }}
+                        onChange={setGenderWeights}
+                      />
+                    </div>
+                    <div id="opt-appearance" className="scroll-mt-16">
+                      <FrequencyControl
+                        defs={FREQUENCY_DEFS}
+                        values={frequencies}
+                        defaults={FREQUENCY_DEFAULTS}
+                        onChange={setFrequencies}
+                      />
+                    </div>
+                    <span id="opt-photography" className="meta-label scroll-mt-16 pt-2">Photography parameters</span>
                     <p className="text-xs text-body-muted">
                       Control which traits are included in randomly generated prompts.
                       {" "}
