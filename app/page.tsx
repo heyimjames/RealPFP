@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1895,6 +1895,26 @@ function LandingHero() {
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+ * LIGHTBOX NAVIGATION STORYBOARD
+ *
+ * Arrow keys page through the gallery while the desktop lightbox
+ * is open. Each swap keys a fresh <img>, replaying one gentle
+ * slide-and-fade in the direction of travel. Runs once per press.
+ *
+ *   0ms   ← / →  pressed → index steps, new image keyed in
+ *   0ms   incoming img starts: opacity 0, x ±NAV.slideX, scale 0.985
+ * 260ms   settles: opacity 1, x 0, scale 1   ease cubic-bezier(0.2,0,0,1)
+ *
+ * navDir: 1 = forward (→, from the right), -1 = back (←, from the
+ * left), 0 = fresh open (no slide, container fade carries it).
+ * ───────────────────────────────────────────────────────── */
+const NAV = {
+  slideX: 28, // px the incoming image travels in from
+  scaleFrom: 0.985, // subtle zoom-in for depth
+  duration: 260, // ms — matches the lightbox easing family
+} as const;
+
 // ---------- Main component ----------
 function Home() {
   const isMobile = useIsMobile();
@@ -1989,6 +2009,9 @@ function Home() {
     null
   );
   const [lightboxVisible, setLightboxVisible] = useState(false);
+  // Direction of the last lightbox navigation, driving the swap animation.
+  // 0 on fresh open so the container fade carries the entrance (no slide).
+  const [navDir, setNavDir] = useState<1 | -1 | 0>(0);
   // Prompt disclosure inside the lightbox, collapsed by default so the image
   // is the hero; the prompt is power-user info revealed on demand.
   const [promptExpanded, setPromptExpanded] = useState(false);
@@ -2009,6 +2032,7 @@ function Home() {
   // Lightbox open/close
   const openLightbox = (image: GeneratedImage) => {
     setPromptExpanded(false); // always start collapsed
+    setNavDir(0); // fresh open: no directional slide
     if (isMobile) {
       setLightboxImage(image);
     } else {
@@ -2016,6 +2040,35 @@ function Home() {
       requestAnimationFrame(() => setLightboxVisible(true));
     }
   };
+
+  // Only finished images are pageable — never land on a pending/error tile.
+  const navigableImages = useMemo(
+    () => images.filter((im) => im.status === "done" && im.imageUrl),
+    [images]
+  );
+
+  // Step to the previous (-1) / next (+1) finished image. Clamps at the ends
+  // rather than wrapping, so the arrow affordances can read as "no more".
+  const navigateLightbox = useCallback(
+    (dir: 1 | -1) => {
+      if (!lightboxImage) return;
+      const idx = navigableImages.findIndex((im) => im.id === lightboxImage.id);
+      const nextIdx = idx + dir;
+      if (idx === -1 || nextIdx < 0 || nextIdx >= navigableImages.length) {
+        return; // at an end (or not found) — no-op
+      }
+      setNavDir(dir);
+      setLightboxImage(navigableImages[nextIdx]);
+    },
+    [navigableImages, lightboxImage]
+  );
+
+  // Position within the pageable set, for the arrow affordances' enabled state.
+  const lbIndex = lightboxImage
+    ? navigableImages.findIndex((im) => im.id === lightboxImage.id)
+    : -1;
+  const hasPrev = lbIndex > 0;
+  const hasNext = lbIndex !== -1 && lbIndex < navigableImages.length - 1;
 
   const closeLightbox = () => {
     if (isMobile) {
@@ -2034,15 +2087,22 @@ function Home() {
   };
 
   useEffect(() => {
+    if (!lightboxImage || isMobile) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && lightboxImage && !isMobile) {
+      if (e.key === "Escape") {
         setLightboxVisible(false);
         setTimeout(() => setLightboxImage(null), 200);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateLightbox(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigateLightbox(-1);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [lightboxImage, isMobile]);
+  }, [lightboxImage, isMobile, navigateLightbox]);
 
   // Track whether localStorage has been loaded. This is STATE, not a ref, on
   // purpose: the persist effects below must not observe it flip during the same
@@ -3592,6 +3652,37 @@ function Home() {
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
+          {/* Prev / next — fixed to the viewport edges, mirror the arrow keys.
+              Hidden at each end so the affordance itself reads as the boundary.
+              Chevrons are nudged 1px into the circle for optical centring. */}
+          {hasPrev && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateLightbox(-1);
+              }}
+              aria-label="Previous image"
+              className="fixed left-4 top-1/2 z-[60] flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white/90 backdrop-blur-md transition-[background-color,scale] duration-150 ease-out fine-hover:hover:bg-white/20 active:scale-[0.96]"
+            >
+              <svg className="-ml-0.5" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+          )}
+          {hasNext && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateLightbox(1);
+              }}
+              aria-label="Next image"
+              className="fixed right-4 top-1/2 z-[60] flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white/90 backdrop-blur-md transition-[background-color,scale] duration-150 ease-out fine-hover:hover:bg-white/20 active:scale-[0.96]"
+            >
+              <svg className="ml-0.5" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          )}
           <div
             className="relative z-10 flex max-h-[92vh] flex-col items-center gap-3 motion-safe:transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]"
             style={{
@@ -3603,11 +3694,20 @@ function Home() {
             {/* Image is the hero. It gently shrinks to make room when the prompt
                 opens, so nothing ever overflows the viewport. */}
             <img
+              key={lightboxImage.id}
               src={lightboxImage.imageUrl}
               alt={lightboxImage.prompt.slice(0, 80)}
+              draggable={false}
+              style={
+                {
+                  "--nav-x": `${navDir * NAV.slideX}px`,
+                  "--nav-scale-from": String(NAV.scaleFrom),
+                  "--nav-duration": `${NAV.duration}ms`,
+                } as React.CSSProperties
+              }
               className={`img-outline-ondark w-auto max-w-[88vw] rounded-2xl object-contain shadow-2xl motion-safe:transition-[max-height] duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
-                promptExpanded ? "max-h-[46vh]" : "max-h-[72vh]"
-              }`}
+                navDir !== 0 ? "lightbox-swap" : ""
+              } ${promptExpanded ? "max-h-[46vh]" : "max-h-[72vh]"}`}
             />
 
             {/* One cohesive toolbar: image actions on the left, a divider, then
