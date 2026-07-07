@@ -2577,9 +2577,12 @@ function Home() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={generateCountInput}
-                        onChange={(e) =>
-                          setGenerateCountInput(e.target.value.replace(/\D/g, "").slice(0, 2))
-                        }
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+                          setGenerateCountInput(
+                            digits === "" ? "" : String(Math.min(50, parseInt(digits)))
+                          );
+                        }}
                         onBlur={() => setGenerateCountInput(String(generateCount))}
                         className="w-full sm:w-24"
                       />
