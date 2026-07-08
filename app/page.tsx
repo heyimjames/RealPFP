@@ -33,6 +33,7 @@ import {
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { track } from "@vercel/analytics";
 
 type GeneratedImage = {
   id: string;
@@ -1915,6 +1916,35 @@ const NAV = {
   duration: 260, // ms — matches the lightbox easing family
 } as const;
 
+/* ─────────────────────────────────────────────────────────
+ * SAMPLE-PACK MARQUEE, seamless right→left ticker of real
+ * generations, shown full-bleed inside the "test-drive" card.
+ *
+ *   • The face list is duplicated once; the track animates from
+ *     translateX(0) to translateX(-50%) — exactly one copy's
+ *     width — so the loop point is invisible.
+ *   • Decorative only (aria-hidden); paused entirely under
+ *     prefers-reduced-motion via the .face-marquee-track rule.
+ * ───────────────────────────────────────────────────────── */
+function SampleFaceMarquee() {
+  const faces = useMemo(() => [...SAMPLE_FACES, ...SAMPLE_FACES], []);
+  return (
+    <div aria-hidden="true" className="face-marquee relative w-full overflow-hidden">
+      <div className="face-marquee-track flex w-max items-center gap-3">
+        {faces.map((face, i) => (
+          <img
+            key={i}
+            src={`/faces/${face}`}
+            alt=""
+            draggable={false}
+            className="img-outline h-14 w-14 shrink-0 rounded-full object-cover"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main component ----------
 function Home() {
   const isMobile = useIsMobile();
@@ -2285,6 +2315,7 @@ function Home() {
         frequencies,
       })
     );
+    track("generate_images", { method: "random", mode, count });
     generateImages(prompts);
   };
 
@@ -2294,6 +2325,7 @@ function Home() {
       toast.error("Enter a prompt first");
       return;
     }
+    track("generate_images", { method: "custom", count: 1 });
     generateImages([prompt]);
   };
 
@@ -2302,6 +2334,7 @@ function Home() {
       toast.error("Upload a file first");
       return;
     }
+    track("generate_images", { method: "csv", count: csvPrompts.length });
     generateImages(csvPrompts);
   };
 
@@ -2338,6 +2371,7 @@ function Home() {
       const blob = await response.blob();
       const filename = `profile-${image.id}.${settings.output_format}`;
       saveAs(blob, filename);
+      track("download_image");
       toast.success("Image downloaded");
     } catch {
       toast.error("Failed to download image");
@@ -2351,6 +2385,7 @@ function Home() {
       return;
     }
 
+    track("download_all_zip", { count: doneImages.length });
     toast.info(`Preparing ZIP of ${doneImages.length} images...`);
 
     const zip = new JSZip();
@@ -2607,7 +2642,7 @@ function Home() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Main Content */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Prompt Input */}
           <Card>
             <CardHeader className="pb-3 sm:pb-6">
@@ -3005,7 +3040,13 @@ function Home() {
                 <Button
                   size="lg"
                   className="w-full shrink-0 sm:w-auto"
-                  render={<a href="/realpfp-sample-pack.zip" download />}
+                  render={
+                    <a
+                      href="/realpfp-sample-pack.zip"
+                      download
+                      onClick={() => track("download_sample_pack")}
+                    />
+                  }
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -3015,6 +3056,7 @@ function Home() {
                   Download 100 sample faces
                 </Button>
               </CardContent>
+              <SampleFaceMarquee />
             </Card>
           )}
 

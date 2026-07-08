@@ -298,4 +298,44 @@
             animation: none;
         }
     }
+
+    /* ---------- Sample-pack card — seamless face ticker ---------- */
+    /* Track holds two identical copies of the face list; animating exactly
+       -50% (one copy's width) hides the loop point. Edge fade keeps faces
+       from clipping to a hard line against the card's rounded corners. */
+    .face-marquee {
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 8%,
+            black 92%,
+            transparent
+        );
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 8%,
+            black 92%,
+            transparent
+        );
+    }
+    @keyframes face-marquee {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+    .face-marquee-track {
+        animation: face-marquee 34s linear infinite;
+        will-change: transform;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .face-marquee:hover .face-marquee-track {
+            animation-play-state: paused;
+        }
+    }
+    /* Vestibular safety: freeze the ticker when motion is reduced. */
+    @media (prefers-reduced-motion: reduce) {
+        .face-marquee-track {
+            animation: none;
+        }
+    }
 }
