@@ -1946,6 +1946,71 @@ function SampleFaceMarquee() {
 }
 
 // ---------- Main component ----------
+/* ─────────────────────────────────────────────────────────
+ * AGENT SKILL CARD, points coding-agent users at the RealPFP
+ * skill in skills/realpfp: same prompt engine, run from Claude
+ * Code (or any agent the skills CLI supports) on whatever image
+ * API the project or user already has.
+ * ───────────────────────────────────────────────────────── */
+const SKILL_INSTALL = "npx skills add heyimjames/RealPFP --skill realpfp -g";
+const SKILL_URL = "https://github.com/heyimjames/RealPFP/tree/main/skills/realpfp";
+
+function AgentSkillCard() {
+  const copyInstall = () => {
+    track("copy_skill_install");
+    navigator.clipboard
+      .writeText(SKILL_INSTALL)
+      .then(() => toast.success("Install command copied"))
+      .catch(() => toast.error("Couldn't copy the command"));
+  };
+  return (
+    <Card className="mt-12 sm:mt-16">
+      <CardContent className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+        <div className="space-y-1">
+          <p className="meta-label">For Claude Code and other coding agents</p>
+          <h2 className="text-base tracking-tight text-foreground sm:text-lg">
+            Generate faces from your agent
+          </h2>
+          <p className="max-w-prose text-sm text-muted-foreground">
+            The RealPFP skill uses this same prompt engine. Ask for &ldquo;8 team
+            avatars&rdquo; and it writes the prompts, runs them on the image API
+            your project already uses (or your own fal, Gemini, OpenAI, xAI or
+            Replicate key), and saves the files.
+          </p>
+        </div>
+        <div className="flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:shrink-0">
+          <div className="flex min-w-0 items-center gap-1 rounded-xl bg-secondary py-1 pr-1 pl-3">
+            <code className="min-w-0 flex-1 py-1.5 font-mono text-[13px] leading-snug text-foreground [overflow-wrap:anywhere] lg:whitespace-nowrap">
+              {SKILL_INSTALL}
+            </code>
+            <button
+              onClick={copyInstall}
+              aria-label="Copy install command"
+              title="Copy install command"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,scale] duration-150 ease-out active:scale-[0.92] fine-hover:hover:bg-white fine-hover:hover:text-foreground"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+          </div>
+          <a
+            href={SKILL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("view_skill")}
+            className="meta-label self-start transition-colors fine-hover:hover:text-foreground"
+          >
+            View the skill on GitHub
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Home() {
   const isMobile = useIsMobile();
   const [images, setImages] = useState<GeneratedImage[]>([]);
@@ -3430,6 +3495,8 @@ function Home() {
           </Card>
         </div>
       </div>
+
+      <AgentSkillCard />
 
       {/* Footer, credit + source link */}
       <footer className="mt-12 flex items-center justify-between gap-4 border-t border-stone pt-6 pb-2 sm:mt-16 sm:pt-8">

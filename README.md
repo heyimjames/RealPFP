@@ -31,6 +31,16 @@ npm run dev
 
 Open **[localhost:2929](http://localhost:2929)**, hit **Settings**, and paste your fal.ai key. It's stored only in your browser and sent nowhere except fal.ai.
 
+## Use it from your coding agent
+
+The same prompt engine ships as a skill for Claude Code and other coding agents. Ask for "8 team avatars" and it writes the prompts, runs them on the image API your project already uses (or your own fal, Gemini, OpenAI, xAI or Replicate key), and saves the files.
+
+```bash
+npx skills add heyimjames/RealPFP --skill realpfp -g
+```
+
+It lives in [`skills/realpfp`](skills/realpfp).
+
 ## How it works
 
 Every image builds a detailed, randomised prompt from your settings — traits, scene, lighting, camera, framing — written as natural description and sent to fal.ai's `nano-banana-2` model. The prompt logic leans on *positive* description (what real photos actually have: pore texture, one light source, correct anatomy) rather than negation, which is what keeps results from looking synthetic.
